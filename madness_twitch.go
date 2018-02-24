@@ -1,0 +1,82 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/Defman21/madnessBot/common"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/telegram-bot-api.v4"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+)
+
+var notificationIds map[string]bool
+
+func init() {
+	notificationIds = make(map[string]bool)
+}
+
+func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		name := r.URL.Path[len(os.Getenv("TWITCH_HOOK")):]
+		type Notification struct {
+			Data []struct {
+				NotificationID string `json:"id"`
+				ID             string `json:"user_id"`
+				Title          string `json:"title"`
+				Type           string `json:"type"`
+				Viewers        int    `json:"viewer_count"`
+			} `json:"data"`
+		}
+		bytes, _ := ioutil.ReadAll(r.Body)
+		common.Log.WithFields(logrus.Fields{
+			"body": string(bytes),
+		}).Info("Request")
+		challenge := r.FormValue("hub.challenge")
+		if len(challenge) > 1 {
+			common.Log.WithFields(logrus.Fields{
+				"name":      name,
+				"challenge": challenge,
+			}).Info("Challenge")
+			w.Write([]byte(challenge))
+		} else {
+			var notification Notification
+			json.Unmarshal(bytes, &notification)
+			common.Log.WithFields(logrus.Fields{
+				"notification": notification,
+			}).Info("Notification")
+			chatID, _ := strconv.ParseInt(os.Getenv("CHAT_ID"), 10, 64)
+			var message string
+			if len(notification.Data) == 0 {
+				message = fmt.Sprintf("%s закончил стрим, потому что нахуй никому "+
+					"не сдался.\nhttps://twitch.tv/%s", name, name)
+				msg := tgbotapi.NewMessage(chatID, message)
+				bot.Send(msg)
+			} else {
+				if _, dup := notificationIds[notification.Data[0].NotificationID]; dup {
+					common.Log.Info("Duplicate notification!")
+					return
+				}
+				notificationIds[notification.Data[0].NotificationID] = true
+				tpl := `%s завел подрубочку!
+Сморков: %d
+%s
+https://twitch.tv/%s
+`
+				message = fmt.Sprintf(tpl, name, notification.Data[0].Viewers,
+					notification.Data[0].Title, name)
+				photo := tgbotapi.NewPhotoUpload(chatID, nil)
+				timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+				url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
+					name + "-1280x720.jpg?" + timestamp
+				photo.FileID = url
+				photo.UseExisting = true
+				photo.Caption = message
+				bot.Send(photo)
+			}
+		}
+	}
+}
