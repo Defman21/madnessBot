@@ -35,6 +35,9 @@ func main() {
 		"resubscribe": cmds.Resubscribe,
 		"unsubscribe": cmds.Unsubscribe,
 		"wlogys":      cmds.Wlogys,
+		"quote":       cmds.Quote,
+		"addquote":    cmds.AddQuote,
+		"quotelist":   cmds.QuoteList,
 	}
 
 	if err != nil {
