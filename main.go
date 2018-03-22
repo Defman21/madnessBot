@@ -1,8 +1,11 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	cmds "github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/franela/goreq"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/telegram-bot-api.v4"
@@ -15,6 +18,8 @@ import (
 var log = common.Log
 
 func main() {
+	noWebhook := flag.Bool("nowebhook", false, "Don't use webhooks")
+	flag.Parse()
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -38,6 +43,7 @@ func main() {
 		"quote":       cmds.Quote,
 		"addquote":    cmds.AddQuote,
 		"quotelist":   cmds.QuoteList,
+		"reverse":     cmds.Reverse,
 	}
 
 	if err != nil {
@@ -45,41 +51,49 @@ func main() {
 			"token": os.Getenv("BOT_TOKEN"),
 		}).Fatal(err)
 	}
-
+	var updates tgbotapi.UpdatesChannel
 	log.Printf("Account name: %s", bot.Self.UserName)
+	if *noWebhook {
+		_, _ = bot.RemoveWebhook()
+		u := tgbotapi.NewUpdate(0)
+		u.Timeout = 3
 
-	_, err = bot.RemoveWebhook()
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	_, err = bot.SetWebhook(tgbotapi.NewWebhook(os.Getenv("MADNESS_URL")))
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"url": os.Getenv("MADNESS_URL"),
-		}).Fatal(err.Error())
-	}
-
-	info, err := bot.GetWebhookInfo()
-
-	if err != nil {
-		log.Fatal(err.Error())
+		updates, _ = bot.GetUpdatesChan(u)
 	} else {
-		log.WithFields(logrus.Fields{
-			"webhook": info,
-		}).Info("Webhook set")
-	}
+		_, err = bot.RemoveWebhook()
 
-	updates := bot.ListenForWebhook(os.Getenv("MADNESS_HOOK"))
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		_, err = bot.SetWebhook(tgbotapi.NewWebhook(os.Getenv("MADNESS_URL")))
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"url": os.Getenv("MADNESS_URL"),
+			}).Fatal(err.Error())
+		}
+
+		info, err := bot.GetWebhookInfo()
+
+		if err != nil {
+			log.Fatal(err.Error())
+		} else {
+			log.WithFields(logrus.Fields{
+				"webhook": info,
+			}).Info("Webhook set")
+		}
+
+		updates = bot.ListenForWebhook(os.Getenv("MADNESS_HOOK"))
+	}
 
 	http.HandleFunc(os.Getenv("TWITCH_HOOK"), madnessTwitch(bot))
 
 	go http.ListenAndServe("0.0.0.0:9000", nil)
 
 	chatID, _ := strconv.ParseInt(os.Getenv("CHAT_ID"), 10, 64)
-	sleepRegex, err := regexp.Compile(`\A(?:я|Я)\s+спать`)
-	sadRegex, err := regexp.Compile(`\A(?:я|Я)\s+обидел(?:ась|ся)`)
+	sleepRegex := regexp.MustCompile(`(?i)\Aя\s+спать`)
+	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
+	wikiRegex := regexp.MustCompile(`(?i)^что такое (.+)`)
 
 	if err != nil {
 		log.Fatal(err.Error())
@@ -101,15 +115,21 @@ func main() {
 		if sticker := update.Message.Sticker; sticker != nil {
 			if update.Message.From.ID == 370779007 {
 				if _, banned := cmds.BannedStickers[sticker.FileID]; banned {
-					_, err := bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
-						ChatID:    update.Message.Chat.ID,
-						MessageID: update.Message.MessageID,
-					})
-					if err != nil {
-						log.Warn(err.Error())
-					}
+					go func(chatid int64, msgid int) {
+						_, err := bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
+							ChatID:    chatid,
+							MessageID: msgid,
+						})
+						if err != nil {
+							log.Warn(err.Error())
+						}
+					}(update.Message.Chat.ID, update.Message.MessageID)
 				}
 			}
+		}
+
+		if update.Message.From.ID == 370779007 {
+			continue
 		}
 
 		command, exists := commands[update.Message.Command()]
@@ -123,6 +143,59 @@ func main() {
 				msg := tgbotapi.NewStickerShare(update.Message.Chat.ID,
 					"CAADAgAD9wIAAlwCZQO1cgzUpY4T7wI")
 				bot.Send(msg)
+			} else if lookup := wikiRegex.FindStringSubmatch(update.Message.Text); lookup != nil {
+				req := goreq.Request{
+					Uri:       "https://ru.wikipedia.org/w/api.php",
+					UserAgent: "madnessBot (https://defman.me; me@defman.me) goreq",
+					QueryString: struct {
+						Action        string
+						Titles        string
+						Prop          string
+						Explaintext   bool
+						Exintro       bool
+						Format        string
+						Formatversion int
+						Redirects     int
+					}{
+						Action:        "query",
+						Titles:        lookup[1],
+						Prop:          "extracts",
+						Explaintext:   true,
+						Exintro:       true,
+						Format:        "json",
+						Formatversion: 2,
+						Redirects:     1,
+					},
+				}
+
+				type response struct {
+					Query struct {
+						Pages []struct {
+							Title   string `json:"title"`
+							Extract string `json:"extract"`
+						} `json:"pages"`
+					} `json:"query"`
+				}
+				res, err := req.Do()
+				if err != nil {
+					log.WithFields(logrus.Fields{
+						"err": err,
+					}).Warn("Wikipedia lookup")
+					continue
+				}
+				var data response
+				err = res.Body.FromJsonTo(&data)
+				if err != nil {
+					log.WithFields(logrus.Fields{
+						"err": err,
+					}).Warn("json decode error")
+				}
+				if len(data.Query.Pages) != 0 {
+					page := data.Query.Pages[0]
+					bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("%v - %v\nhttps://ru.wikipedia.org/wiki/%v", page.Title, page.Extract, page.Title)))
+				} else {
+					bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Википедия не знает forsenKek"))
+				}
 			}
 		}
 	}

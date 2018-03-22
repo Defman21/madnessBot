@@ -29,7 +29,7 @@ func Music(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				CurrentSong struct {
 					ID   string `json:"fkid"`
 					Name string `json:"name"`
-				} `json:"currentSong`
+				} `json:"currentSong"`
 			} `json:"data"`
 		}
 
