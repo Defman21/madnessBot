@@ -14,6 +14,11 @@ func Cat(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 	res, err := goreq.Request{
 		Uri: "https://thecatapi.com/api/images/get",
+		QueryString: struct {
+			Type string
+		}{
+			Type: "jpg,png",
+		},
 	}.Do()
 
 	if err != nil {

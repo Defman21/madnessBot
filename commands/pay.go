@@ -7,7 +7,7 @@ import (
 var payers, notified map[int]bool
 
 func init() {
-	payers = map[int]bool{323141608: true, 306022838: true, 71524437: true}
+	payers = map[int]bool{323141608: true, 306022838: true, 71524437: true, 105513756: true}
 	notified = make(map[int]bool)
 }
 

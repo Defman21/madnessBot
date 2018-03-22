@@ -41,6 +41,15 @@
   revision = "88d2dcc510266da9f7f8c7f34e1940716cab5f5c"
 
 [[projects]]
+  name = "gopkg.in/gographics/imagick.v2"
+  packages = [
+    "imagick",
+    "imagick/types"
+  ]
+  revision = "589a8ef16fd4f08a29ad26afe5c33fb5673e4efc"
+  version = "v2.5.0"
+
+[[projects]]
   name = "gopkg.in/telegram-bot-api.v4"
   packages = ["."]
   revision = "2022d04b94f50056a09962b1ac81cdd821d20a55"
@@ -49,6 +58,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "081623a0f1c668c81b5889455199fd8e10763e350940ed49e2a4d2090e299b17"
+  inputs-digest = "586dd9c22ced832568658812e0f6ec0b9624479acb803caeb0a5ac8185b083f5"
   solver-name = "gps-cdcl"
   solver-version = 1
