@@ -44,6 +44,7 @@ func main() {
 		"addquote":    cmds.AddQuote,
 		"quotelist":   cmds.QuoteList,
 		"reverse":     cmds.Reverse,
+		"kek":         cmds.Kek,
 	}
 
 	if err != nil {
@@ -112,6 +113,11 @@ func main() {
 			continue
 		}
 
+		log.WithFields(logrus.Fields{
+			"uid":      update.Message.From.ID,
+			"username": update.Message.From.UserName,
+		}).Info("Message")
+
 		if sticker := update.Message.Sticker; sticker != nil {
 			if update.Message.From.ID == 370779007 {
 				if _, banned := cmds.BannedStickers[sticker.FileID]; banned {
@@ -138,7 +144,7 @@ func main() {
 		} else {
 			if sleepRegex.MatchString(update.Message.Text) {
 				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Споки <3"))
-				commands["cat"](bot, &update)
+				cmds.Cat(bot, &update)
 			} else if sadRegex.MatchString(update.Message.Text) {
 				msg := tgbotapi.NewStickerShare(update.Message.Chat.ID,
 					"CAADAgAD9wIAAlwCZQO1cgzUpY4T7wI")
