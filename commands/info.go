@@ -2,14 +2,16 @@ package commands
 
 import (
 	"fmt"
-	"github.com/Defman21/madnessBot/common"
-	"github.com/franela/goreq"
-	"gopkg.in/telegram-bot-api.v4"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/Defman21/madnessBot/common"
+	"github.com/franela/goreq"
+	"gopkg.in/telegram-bot-api.v4"
 )
 
+// Info omegalul
 func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
 
@@ -34,21 +36,21 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if err != nil {
 		common.Log.Warn(err.Error())
 		return
-	} else {
-		type TwitchResponse struct {
-			Data []struct {
-				Title   string `json:"title"`
-				Viewers int64  `json:"viewer_count"`
-				Game string `json:"game_id"`
-			} `json:"data"`
-		}
+	}
+	type TwitchResponse struct {
+		Data []struct {
+			Title   string `json:"title"`
+			Viewers int64  `json:"viewer_count"`
+			Game    string `json:"game_id"`
+		} `json:"data"`
+	}
 
+	var data TwitchResponse
+	res.Body.FromJsonTo(&data)
 
-		var data TwitchResponse
-		res.Body.FromJsonTo(&data)
-
+	if len(data.Data) != 0 {
 		type gameResponse struct {
-			Data[] struct {
+			Data []struct {
 				Name string `json:"name"`
 			} `json:"data"`
 		}
@@ -71,28 +73,26 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 		var gdata gameResponse
 		res.Body.FromJsonTo(&gdata)
-		if len(data.Data) != 0 {
-			photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
-			timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-			url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
-				channel + "-1280x720.jpg?" + timestamp
-			photo.FileID = url
-			photo.UseExisting = true
-			tpl := `%s сейчас онлайн!
+		photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
+		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+		url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
+			channel + "-1280x720.jpg?" + timestamp
+		photo.FileID = url
+		photo.UseExisting = true
+		tpl := `%s сейчас онлайн!
 %s
 Сморков: %d
 Игра: %s
 https://twitch.tv/%s`
-			photo.Caption = fmt.Sprintf(tpl, channel, data.Data[0].Title,
-				data.Data[0].Viewers, gdata.Data[0].Name, channel)
-			bot.Send(photo)
-		} else {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID,
-				"Етот пидор ниче не стримит")
-			bot.Send(msg)
-			sticker := tgbotapi.NewStickerShare(update.Message.Chat.ID,
-				"CAADAgADIwAD43TSFjrD9SW8bXfjAg")
-			bot.Send(sticker)
-		}
+		photo.Caption = fmt.Sprintf(tpl, channel, data.Data[0].Title,
+			data.Data[0].Viewers, gdata.Data[0].Name, channel)
+		bot.Send(photo)
+	} else {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID,
+			"Етот пидор ниче не стримит")
+		bot.Send(msg)
+		sticker := tgbotapi.NewStickerShare(update.Message.Chat.ID,
+			"CAADAgADIwAD43TSFjrD9SW8bXfjAg")
+		bot.Send(sticker)
 	}
 }
