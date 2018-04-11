@@ -39,12 +39,38 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			Data []struct {
 				Title   string `json:"title"`
 				Viewers int64  `json:"viewer_count"`
+				Game string `json:"game_id"`
 			} `json:"data"`
 		}
+
 
 		var data TwitchResponse
 		res.Body.FromJsonTo(&data)
 
+		type gameResponse struct {
+			Data[] struct {
+				Name string `json:"name"`
+			} `json:"data"`
+		}
+
+		req = goreq.Request{
+			Uri: "https://api.twitch.tv/helix/games",
+			QueryString: struct {
+				ID string
+			}{
+				ID: data.Data[0].Game,
+			},
+		}
+		req.AddHeader("Client-ID", os.Getenv("TWITCH_TOKEN"))
+		res, err = req.Do()
+
+		if err != nil {
+			common.Log.Warn(err.Error())
+			return
+		}
+
+		var gdata gameResponse
+		res.Body.FromJsonTo(&gdata)
 		if len(data.Data) != 0 {
 			photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
 			timestamp := strconv.FormatInt(time.Now().Unix(), 10)
@@ -53,11 +79,12 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			photo.FileID = url
 			photo.UseExisting = true
 			tpl := `%s сейчас онлайн!
-Сморков: %d
 %s
+Сморков: %d
+Игра: %s
 https://twitch.tv/%s`
-			photo.Caption = fmt.Sprintf(tpl, channel, data.Data[0].Viewers,
-				data.Data[0].Title, channel)
+			photo.Caption = fmt.Sprintf(tpl, channel, data.Data[0].Title,
+				data.Data[0].Viewers, gdata.Data[0].Name, channel)
 			bot.Send(photo)
 		} else {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID,

@@ -3,16 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"regexp"
+	"strconv"
+
 	cmds "github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/franela/goreq"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/telegram-bot-api.v4"
-	"net/http"
-	"os"
-	"regexp"
-	"strconv"
 )
 
 var log = common.Log
@@ -118,25 +119,25 @@ func main() {
 			"username": update.Message.From.UserName,
 		}).Info("Message")
 
-		if sticker := update.Message.Sticker; sticker != nil {
-			if update.Message.From.ID == 370779007 {
-				if _, banned := cmds.BannedStickers[sticker.FileID]; banned {
-					go func(chatid int64, msgid int) {
-						_, err := bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
-							ChatID:    chatid,
-							MessageID: msgid,
-						})
-						if err != nil {
-							log.Warn(err.Error())
-						}
-					}(update.Message.Chat.ID, update.Message.MessageID)
-				}
-			}
-		}
+		//if sticker := update.Message.Sticker; sticker != nil {
+		//	if update.Message.From.ID == 370779007 {
+		//		if _, banned := cmds.BannedStickers[sticker.FileID]; banned {
+		//			go func(chatid int64, msgid int) {
+		//				_, err := bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
+		//					ChatID:    chatid,
+		//					MessageID: msgid,
+		//				})
+		//				if err != nil {
+		//					log.Warn(err.Error())
+		//				}
+		//			}(update.Message.Chat.ID, update.Message.MessageID)
+		//		}
+		//	}
+		//}
 
-		if update.Message.From.ID == 370779007 {
-			continue
-		}
+		//if update.Message.From.ID == 370779007 {
+		//	continue
+		//}
 
 		command, exists := commands[update.Message.Command()]
 		if exists {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/sirupsen/logrus"
+	"github.com/franela/goreq"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
 	"net/http"
@@ -28,6 +29,7 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 				ID             string `json:"user_id"`
 				Title          string `json:"title"`
 				Type           string `json:"type"`
+				Game string `json:"game_id"`
 				Viewers        int    `json:"viewer_count"`
 			} `json:"data"`
 		}
@@ -56,18 +58,45 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 				msg := tgbotapi.NewMessage(chatID, message)
 				bot.Send(msg)
 			} else {
+
 				if _, dup := notificationIds[notification.Data[0].NotificationID]; dup {
 					common.Log.Info("Duplicate notification!")
 					return
 				}
 				notificationIds[notification.Data[0].NotificationID] = true
+				req := goreq.Request{
+					Uri: "https://api.twitch.tv/helix/games",
+					QueryString: struct {
+						ID string
+					}{
+						ID: notification.Data[0].Game,
+					},
+				}
+				req.AddHeader("Client-ID", os.Getenv("TWITCH_TOKEN"))
+				res, err := req.Do()
+
+				if err != nil {
+					common.Log.Warn(err.Error())
+					return
+				}
+
+				type gameResponse struct {
+					Data []struct {
+						Name string
+					}
+				}
+
+				var data gameResponse
+				res.Body.FromJsonTo(&data)
+				
 				tpl := `%s завел подрубочку!
-Сморков: %d
 %s
+Сморков: %d
+Игра: %s
 https://twitch.tv/%s
 `
-				message = fmt.Sprintf(tpl, name, notification.Data[0].Viewers,
-					notification.Data[0].Title, name)
+				message = fmt.Sprintf(tpl, name, notification.Data[0].Title,
+					notification.Data[0].Viewers, data.Data[0].Name, name)
 				photo := tgbotapi.NewPhotoUpload(chatID, nil)
 				timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 				url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +

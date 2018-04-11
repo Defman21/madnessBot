@@ -3,8 +3,10 @@ package commands
 import (
 	"github.com/Defman21/madnessBot/common"
 	"gopkg.in/telegram-bot-api.v4"
+	"strings"
 )
 
+// Swap luuul
 func Swap(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	dict := map[rune]rune{
 		'q':  'й',
@@ -47,7 +49,7 @@ func Swap(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		}
 	}()
 	text := update.Message.ReplyToMessage.Text
-	fucked := []rune(text)
+	fucked := []rune(strings.ToLower(text))
 	for i, char := range fucked {
 		val, ok := dict[char]
 		if ok {
