@@ -11,7 +11,11 @@ import (
 	"os"
 )
 
-func Resubscribe(*tgbotapi.BotAPI, *tgbotapi.Update) {
+func Resubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	if !common.IsAdmin(update.Message.From) {
+		common.Log.Info("Prevented resubscribe")
+		return
+	}
 	bytes, err := ioutil.ReadFile("./data/users.json")
 	if err != nil {
 		common.Log.Warn(err.Error())

@@ -1,0 +1,15 @@
+github.com/franela/goreq v0.0.0-20171204163338-bcd34c9993f8 h1:a9ENSRDFBUPkJ5lCgVZh26+ZbGyoVJG7yb5SSzF5H54=
+github.com/franela/goreq v0.0.0-20171204163338-bcd34c9993f8/go.mod h1:ZhphrRTfi2rbfLwlschooIH4+wKKDR4Pdxhh+TRoA20=
+github.com/joho/godotenv v1.2.0 h1:vGTvz69FzUFp+X4/bAkb0j5BoLC+9bpqTWY8mjhA9pc=
+github.com/joho/godotenv v1.2.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=
+github.com/sirupsen/logrus v1.0.4 h1:gzbtLsZC3Ic5PptoRG+kQj4L60qjK7H7XszrU163JNQ=
+github.com/sirupsen/logrus v1.0.4/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
+github.com/technoweenie/multipartstreamer v1.0.1 h1:XRztA5MXiR1TIRHxH2uNxXxaIkKQDeX7m2XsSOlQEnM=
+github.com/technoweenie/multipartstreamer v1.0.1/go.mod h1:jNVxdtShOxzAsukZwTSw6MDx5eUJoiEBsSvzDU9uzog=
+golang.org/x/crypto v0.0.0-20180222182404-49796115aa4b h1:/GxqO8gbyb+sNnviFY2IIMrtm8vGg6NEJDft68wJY/g=
+golang.org/x/crypto v0.0.0-20180222182404-49796115aa4b/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
+golang.org/x/sys v0.0.0-20180223165747-88d2dcc51026 h1:J/A0YizJuTipsD/y9qqQ3UY13KelNEUEPjSZLR16Rkw=
+golang.org/x/sys v0.0.0-20180223165747-88d2dcc51026/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+gopkg.in/gographics/imagick.v2 v2.5.0/go.mod h1:of4TbGX8yMcpgWkWFjha7FsOFr+NjOJ5O1qtKU27Yj0=
+gopkg.in/telegram-bot-api.v4 v4.6.1 h1:dv01Nt/N1XQHtKYXCw0IvwLZ61G+dTa9sradBjyAqU4=
+gopkg.in/telegram-bot-api.v4 v4.6.1/go.mod h1:5DpGO5dbumb40px+dXcwCpcjmeHNYLpk0bp3XRNvWDM=

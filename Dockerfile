@@ -1,4 +1,5 @@
 FROM golang:latest
+RUN apt-get update && apt-get install -y libmagickwand-dev
 
 WORKDIR /go/src/github.com/Defman21/madnessBot
 COPY . .
