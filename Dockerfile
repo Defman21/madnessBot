@@ -5,6 +5,7 @@ WORKDIR /go/src/github.com/Defman21/madnessBot
 COPY . .
 RUN pwd
 RUN ls -la
+ENV GO111module=on
 RUN go install -v ./...
 
 EXPOSE 9000
