@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Defman21/madnessBot/common"
@@ -21,6 +22,8 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		bot.Send(msg)
 		return
 	}
+
+	channel = strings.ToLower(channel)
 
 	req := goreq.Request{
 		Uri: "https://api.twitch.tv/helix/streams",

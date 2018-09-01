@@ -26,11 +26,11 @@ func Cat(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		return
 	}
 	msg := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
-	msg.FileID = res.Header.Get("Original_image")
+	msg.FileID = res.Header.Get("Location")
 	msg.UseExisting = true
 	_, err = bot.Send(msg)
 	if err != nil {
-		msg := fmt.Sprintf("Все летит в пизду (и коты тоже)\n`%s`", err)
+		msg := fmt.Sprintf("Все летит в пизду\n%s\nURL: %s", err, res.Header.Get("Location"))
 		bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, msg))
 	}
 }

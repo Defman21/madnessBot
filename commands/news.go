@@ -1,10 +1,13 @@
 package commands
 
 import (
+	"fmt"
+	"os"
+	"time"
+
 	"github.com/Defman21/madnessBot/common"
 	"github.com/franela/goreq"
 	"gopkg.in/telegram-bot-api.v4"
-	"os"
 )
 
 func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
@@ -26,28 +29,38 @@ func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if err != nil {
 		common.Log.Warn(err.Error())
 		return
-	} else {
-		type VkResponse struct {
-			Response struct {
-				Items []struct {
-					Text        string `json:"text"`
-					Attachments []struct {
-						Photo struct {
-							URL string `json:"photo_604"`
-						} `json:"photo"`
-					} `json:"attachments"`
-				} `json:"items"`
-			} `json:"response"`
-		}
-
-		var data VkResponse
-		res.Body.FromJsonTo(&data)
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, data.Response.Items[0].Text)
-		bot.Send(msg)
-		photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
-		photo.FileID = data.Response.Items[0].Attachments[0].Photo.URL
-		photo.UseExisting = true
-		bot.Send(photo)
 	}
+	type VkResponse struct {
+		Response struct {
+			Items []struct {
+				Text        string `json:"text"`
+				OwnerID     int64  `json:"owner_id"`
+				ID          int64  `json:"id"`
+				Date        int64  `json:"date"`
+				Attachments []struct {
+					Photo struct {
+						URL string `json:"photo_604"`
+					} `json:"photo"`
+				} `json:"attachments"`
+			} `json:"items"`
+		} `json:"response"`
+	}
+
+	var data VkResponse
+	res.Body.FromJsonTo(&data)
+
+	url := fmt.Sprintf("https://vk.com/wall%d_%d", data.Response.Items[0].OwnerID, data.Response.Items[0].ID)
+
+	text := fmt.Sprintf("%s\n%s\n%s", time.Unix(data.Response.Items[0].Date, 0).Format("02.01 15:04"), data.Response.Items[0].Text, url)
+
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
+	msg.DisableWebPagePreview = true
+	bot.Send(msg)
+	if len(data.Response.Items[0].Attachments) == 0 {
+		return
+	}
+	photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
+	photo.FileID = data.Response.Items[0].Attachments[0].Photo.URL
+	photo.UseExisting = true
+	bot.Send(photo)
 }

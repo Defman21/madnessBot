@@ -7,7 +7,15 @@ import (
 var payers, notified map[int]bool
 
 func init() {
-	payers = map[int]bool{323141608: true, 306022838: true, 71524437: true, 105513756: true, 301864265: true, 431674591: true}
+	payers = map[int]bool{
+			323141608: true, // Tishka
+			306022838: true, // Kleozis
+			71524437: true,  // defman
+			105513756: true, // defman
+			//301864265: true, // borobushe
+			//431674591: true, // Refferency
+			//86097149: true // advancher
+	}
 	notified = make(map[int]bool)
 }
 
@@ -17,7 +25,8 @@ func payCheck(bot *tgbotapi.BotAPI, update *tgbotapi.Update) bool {
 		return true
 	}
 	if _, exists := notified[user]; !exists {
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "PLATI NOLOGI")
+		msg := tgbotapi.NewVoiceShare(update.Message.Chat.ID,
+			"AwADAgADwgADC6ZpS13yfdzm_pTzAg")
 		bot.Send(msg)
 		notified[user] = true
 	}
