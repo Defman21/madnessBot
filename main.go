@@ -46,6 +46,7 @@ func main() {
 		"quotelist":   cmds.QuoteList,
 		"reverse":     cmds.Reverse,
 		"kek":         cmds.Kek,
+		"s":           cmds.Sarcasm,
 	}
 
 	if err != nil {
