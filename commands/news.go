@@ -20,7 +20,7 @@ func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			AccessToken string  `url:"access_token"`
 		}{
 			OwnerID:     -30138776,
-			Count:       1,
+			Count:       2,
 			Version:     5.71,
 			AccessToken: os.Getenv("VK_TOKEN"),
 		},
@@ -37,6 +37,7 @@ func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				OwnerID     int64  `json:"owner_id"`
 				ID          int64  `json:"id"`
 				Date        int64  `json:"date"`
+				Pinned      int64  `json:"is_pinned"`
 				Attachments []struct {
 					Photo struct {
 						URL string `json:"photo_604"`
@@ -48,6 +49,10 @@ func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	var data VkResponse
 	res.Body.FromJsonTo(&data)
+
+	if data.Response.Items[0].Pinned == 1 {
+		data.Response.Items[0] = data.Response.Items[1]
+	}
 
 	url := fmt.Sprintf("https://vk.com/wall%d_%d", data.Response.Items[0].OwnerID, data.Response.Items[0].ID)
 
