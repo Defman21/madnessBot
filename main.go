@@ -96,7 +96,7 @@ func main() {
 	chatID, _ := strconv.ParseInt(os.Getenv("CHAT_ID"), 10, 64)
 	sleepRegex := regexp.MustCompile(`(?i)\Aя\s+спать`)
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
-	wikiRegex := regexp.MustCompile(`(?i)^что такое (.+)`)
+	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
 
 	if err != nil {
 		log.Fatal(err.Error())
@@ -198,9 +198,11 @@ func main() {
 						"err": err,
 					}).Warn("json decode error")
 				}
-				if len(data.Query.Pages) != 0 {
+				if len(data.Query.Pages) != 0 && len(data.Query.Pages[0].Extract) != 0 {
 					page := data.Query.Pages[0]
-					bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("%v - %v\nhttps://ru.wikipedia.org/wiki/%v", page.Title, page.Extract, page.Title)))
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("[%v](https://ru.wikipedia.org/wiki/%v) - %v\n", page.Title, page.Title, page.Extract))
+					msg.ParseMode = tgbotapi.ModeMarkdown
+					bot.Send(msg)
 				} else {
 					bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Википедия не знает forsenKek"))
 				}
