@@ -58,14 +58,14 @@ func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	text := fmt.Sprintf("%s\n%s\n%s", time.Unix(data.Response.Items[0].Date, 0).Format("02.01 15:04"), data.Response.Items[0].Text, url)
 
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
-	msg.DisableWebPagePreview = true
-	bot.Send(msg)
 	if len(data.Response.Items[0].Attachments) == 0 {
-		return
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
+		bot.Send(msg)
+	} else {
+		photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
+		photo.FileID = data.Response.Items[0].Attachments[0].Photo.URL
+		photo.UseExisting = true
+		photo.Caption = text
+		bot.Send(photo)
 	}
-	photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
-	photo.FileID = data.Response.Items[0].Attachments[0].Photo.URL
-	photo.UseExisting = true
-	bot.Send(photo)
 }
