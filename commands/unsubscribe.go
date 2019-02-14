@@ -28,20 +28,11 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	var users Users
-	var newUsers Users
-	findUser := false
 
 	json.Unmarshal(bytes, &users)
 
-	for _, user := range users.List {
-		if user[0] != channel {
-			newUsers.List = append(newUsers.List, user)
-			continue
-		} else {
-			findUser = true
-		}
-
-		go func(user []string) {
+	if userID, ok := users[channel]; ok {
+		go func(channel string, userID string) {
 			req := goreq.Request{
 				Method: "POST",
 				Uri:    "https://api.twitch.tv/helix/webhooks/hub",
@@ -51,10 +42,10 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 					HubLeaseSeconds int    `url:"hub.lease_seconds"`
 					HubTopic        string `url:"hub.topic"`
 				}{
-					HubCallback:     fmt.Sprintf("%s%s", os.Getenv("TWITCH_URL"), user[0]),
+					HubCallback:     fmt.Sprintf("%s%s", os.Getenv("TWITCH_URL"), channel),
 					HubMode:         "unsubscribe",
 					HubLeaseSeconds: 864000,
-					HubTopic:        fmt.Sprintf("https://api.twitch.tv/helix/streams?user_id=%s", user[1]),
+					HubTopic:        fmt.Sprintf("https://api.twitch.tv/helix/streams?user_id=%s", userID),
 				},
 			}
 			req.AddHeader("Client-ID", os.Getenv("TWITCH_TOKEN"))
@@ -64,12 +55,12 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				common.Log.Warn(err.Error())
 			} else {
 				common.Log.WithFields(logrus.Fields{
-					"user":    user[0],
+					"user":    channel,
 					"context": "commands/unsubscribe",
 				}).Info("Unsubscribed")
 
-				jsonStr, _ := json.Marshal(newUsers)
-
+				delete(users, channel)
+				jsonStr, _ := json.Marshal(users)
 				err = ioutil.WriteFile("./data/users.json", []byte(jsonStr), 0644)
 				if err == nil {
 					common.Log.Info("Updated users.json")
@@ -83,10 +74,8 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 					common.Log.Warn("Couldn't write to users.json")
 				}
 			}
-		}(user)
-	}
-
-	if findUser == false {
+		}(channel, userID)
+	} else {
 		common.Log.WithFields(logrus.Fields{
 			"user": channel,
 		}).Warn("Channel not found")
