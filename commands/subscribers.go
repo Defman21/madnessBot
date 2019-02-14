@@ -21,8 +21,8 @@ func Subscribers(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	json.Unmarshal(bytes, &users)
 
-	for _, user := range users.List {
-		subscribers += fmt.Sprintf("%s\n", user[0])
+	for username, _ := range users {
+		subscribers += fmt.Sprintf("%s\n", username)
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, subscribers)

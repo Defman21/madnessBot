@@ -10,9 +10,7 @@ import (
 	"os"
 )
 
-type Users struct {
-	List [][]string `json:"users"`
-}
+type Users map[string]string
 
 func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
@@ -79,7 +77,8 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		}
 
 		json.Unmarshal(bytes, &users)
-		users.List = append(users.List, []string{channel, user.Data[0].ID})
+
+		users[channel] = user.Data[0].ID
 		bytes, err = json.Marshal(users)
 
 		if err != nil {
