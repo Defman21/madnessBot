@@ -49,6 +49,7 @@ func main() {
 		"kek":         cmds.Kek,
 		"s":           cmds.Sarcasm,
 		"version":     cmds.Version,
+		"donate":      cmds.Donate,
 	}
 
 	if err != nil {
