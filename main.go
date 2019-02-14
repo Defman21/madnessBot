@@ -118,6 +118,7 @@ func main() {
 		log.WithFields(logrus.Fields{
 			"uid":      update.Message.From.ID,
 			"username": update.Message.From.UserName,
+			"text":     update.Message.Text,
 		}).Info("Message")
 
 		//if sticker := update.Message.Sticker; sticker != nil {
