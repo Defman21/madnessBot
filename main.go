@@ -47,6 +47,7 @@ func main() {
 		"reverse":     cmds.Reverse,
 		"kek":         cmds.Kek,
 		"s":           cmds.Sarcasm,
+		"version":     cmds.Version,
 	}
 
 	if err != nil {
