@@ -40,6 +40,7 @@ func main() {
 		"me":          cmds.Me,
 		"resubscribe": cmds.Resubscribe,
 		"unsubscribe": cmds.Unsubscribe,
+		"subs":        cmds.Subscribers,
 		"wlogys":      cmds.Wlogys,
 		"quote":       cmds.Quote,
 		"addquote":    cmds.AddQuote,
