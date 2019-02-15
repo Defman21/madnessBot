@@ -16,6 +16,6 @@ func Sarcasm(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	})
 
 	if err != nil {
-		common.Log.Warn(err.Error())
+		common.Log.Error().Err(err).Msg("Failed to send a message")
 	}
 }

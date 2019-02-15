@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"github.com/Defman21/madnessBot/common"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -19,12 +17,6 @@ func init() {
 }
 
 func Wlogys(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
-	defer func() {
-		common.Log.Warn(recover())
-	}()
 	stickerID := update.Message.ReplyToMessage.Sticker.FileID
 	BannedStickers[stickerID] = true
-	common.Log.WithFields(logrus.Fields{
-		"stickerID": stickerID,
-	}).Info("Banned sticker for wlogys")
 }

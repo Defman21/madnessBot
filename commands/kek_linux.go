@@ -16,7 +16,7 @@ func Kek(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 	photos, err := bot.GetUserProfilePhotos(tgbotapi.NewUserProfilePhotos(update.Message.From.ID))
 	if err != nil {
-		common.Log.Warn("lul")
+		common.Log.Warn().Err(err).Msg("Failed to get user profile photo")
 	} else {
 		direction := update.Message.CommandArguments()
 		zulul := photos.Photos[0]

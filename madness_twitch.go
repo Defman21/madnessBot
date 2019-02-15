@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
-	"github.com/sirupsen/logrus"
 	"github.com/franela/goreq"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
@@ -29,27 +28,24 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 				ID             string `json:"user_id"`
 				Title          string `json:"title"`
 				Type           string `json:"type"`
-				Game string `json:"game_id"`
+				Game           string `json:"game_id"`
 				Viewers        int    `json:"viewer_count"`
 			} `json:"data"`
 		}
 		bytes, _ := ioutil.ReadAll(r.Body)
-		common.Log.WithFields(logrus.Fields{
-			"body": string(bytes),
-		}).Info("Request")
+		common.Log.Info().Interface("request", r).Msg("Request")
+
 		challenge := r.FormValue("hub.challenge")
 		if len(challenge) > 1 {
-			common.Log.WithFields(logrus.Fields{
-				"name":      name,
-				"challenge": challenge,
-			}).Info("Challenge")
+			common.Log.Info().Str("name", name).Str("challenge", challenge).Msg("Challenge")
+
 			w.Write([]byte(challenge))
 		} else {
 			var notification Notification
 			json.Unmarshal(bytes, &notification)
-			common.Log.WithFields(logrus.Fields{
-				"notification": notification,
-			}).Info("Notification")
+
+			common.Log.Info().Interface("notification", notification).Msg("Notification")
+
 			chatID, _ := strconv.ParseInt(os.Getenv("CHAT_ID"), 10, 64)
 			var message string
 			if len(notification.Data) == 0 {
@@ -60,7 +56,7 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 			} else {
 
 				if _, dup := notificationIds[notification.Data[0].NotificationID]; dup {
-					common.Log.Info("Duplicate notification!")
+					common.Log.Info().Msg("Duplicate notification!")
 					return
 				}
 				notificationIds[notification.Data[0].NotificationID] = true
@@ -76,7 +72,7 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 				res, err := req.Do()
 
 				if err != nil {
-					common.Log.Warn(err.Error())
+					common.Log.Error().Err(err).Msg("Request failed")
 					return
 				}
 
@@ -88,7 +84,7 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 
 				var data gameResponse
 				res.Body.FromJsonTo(&data)
-				
+
 				tpl := `%s завел подрубочку!
 %s
 Сморков: %d

@@ -37,7 +37,7 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	res, err := req.Do()
 
 	if err != nil {
-		common.Log.Warn(err.Error())
+		common.Log.Error().Err(err).Msg("Request failed")
 		return
 	}
 	type TwitchResponse struct {
@@ -70,7 +70,7 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		res, err = req.Do()
 
 		if err != nil {
-			common.Log.Warn(err.Error())
+			common.Log.Error().Err(err).Msg("Request failed")
 			return
 		}
 

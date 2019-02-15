@@ -12,7 +12,7 @@ import (
 func Subscribers(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	bytes, err := ioutil.ReadFile("./data/users.json")
 	if err != nil {
-		common.Log.Warn(err.Error())
+		common.Log.Error().Err(err).Msg("Failed to read users.json")
 		return
 	}
 

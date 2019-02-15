@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/franela/goreq"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
 	"os"
@@ -23,7 +22,7 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	bytes, err := ioutil.ReadFile("./data/users.json")
 	if err != nil {
-		common.Log.Warn(err.Error())
+		common.Log.Warn().Err(err).Msg("Failed to read users.json")
 		return
 	}
 
@@ -52,18 +51,16 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			_, err := req.Do()
 
 			if err != nil {
-				common.Log.Warn(err.Error())
+				common.Log.Error().Err(err).Msg("Request failed")
 			} else {
-				common.Log.WithFields(logrus.Fields{
-					"user":    channel,
-					"context": "commands/unsubscribe",
-				}).Info("Unsubscribed")
+				common.Log.Info().
+					Str("user", channel).Msg("Unsubscribed")
 
 				delete(users, channel)
 				jsonStr, _ := json.Marshal(users)
 				err = ioutil.WriteFile("./data/users.json", []byte(jsonStr), 0644)
 				if err == nil {
-					common.Log.Info("Updated users.json")
+					common.Log.Info().Msg("Updated users.json")
 					bot.Send(
 						tgbotapi.NewMessage(
 							update.Message.Chat.ID,
@@ -71,13 +68,11 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 						),
 					)
 				} else {
-					common.Log.Warn("Couldn't write to users.json")
+					common.Log.Warn().Err(err).Msg("Couldn't write to users.json")
 				}
 			}
 		}(channel, userID)
 	} else {
-		common.Log.WithFields(logrus.Fields{
-			"user": channel,
-		}).Warn("Channel not found")
+		common.Log.Warn().Str("channel", channel).Msg("Channel not found")
 	}
 }

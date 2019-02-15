@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
 	"math/rand"
@@ -23,23 +22,18 @@ var Quotes quoteFile
 func init() {
 	str, err := ioutil.ReadFile("./data/quotes.json")
 	if err != nil {
-		common.Log.Warn("Failed to read ./data/quotes.json")
+		common.Log.Error().Err(err).Msg("Failed to read ./data/quotes.json")
 		return
 	}
 
 	json.Unmarshal(str, &Quotes)
-
-	common.Log.WithFields(logrus.Fields{
-		"bytes": string(str),
-		"quote": Quotes,
-	}).Debug("Dump")
 }
 
 func Quote(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	quoteID, err := strconv.Atoi(update.Message.CommandArguments())
 
 	if err != nil {
-		common.Log.Warn("Not a valid number")
+		common.Log.Error().Err(err).Msg("Not a valid number")
 		quoteID = rand.Intn(len(Quotes.Quotes) - 1)
 	}
 
@@ -50,5 +44,5 @@ func Quote(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			return
 		}
 	}
-	common.Log.Warn("Quote not found")
+	common.Log.Warn().Int("quote", quoteID).Msg("Quote not found")
 }

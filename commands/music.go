@@ -22,7 +22,7 @@ func Music(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}.Do()
 
 	if err != nil {
-		common.Log.Warn(err.Error())
+		common.Log.Error().Err(err).Msg("Request failed")
 		return
 	}
 	type Response struct {

@@ -1,12 +1,25 @@
 package common
 
 import (
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
 	"os"
+	"time"
 )
 
-var Log = logrus.New()
+var Log = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC822}).With().Timestamp().Logger()
 
 func init() {
-	Log.Out = os.Stdout
+	levels := map[string]zerolog.Level{
+		"DEBUG": zerolog.DebugLevel,
+		"INFO":  zerolog.InfoLevel,
+		"WARN":  zerolog.WarnLevel,
+	}
+
+	logLevel := os.Getenv("LOG_LEVEL")
+
+	if logLevel == "" {
+		logLevel = "INFO"
+	}
+
+	Log = Log.Level(levels[logLevel])
 }
