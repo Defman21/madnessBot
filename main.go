@@ -12,7 +12,6 @@ import (
 	"github.com/Defman21/madnessBot/common"
 	"github.com/franela/goreq"
 	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -23,7 +22,9 @@ func main() {
 	flag.Parse()
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal().
+			Err(err).
+			Msg("Error loading .env file")
 	}
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
 
@@ -53,40 +54,47 @@ func main() {
 	}
 
 	if err != nil {
-		log.WithFields(logrus.Fields{
-			"token": os.Getenv("BOT_TOKEN"),
-		}).Fatal(err)
+		log.Fatal().
+			Err(err).
+			Str("token", os.Getenv("BOT_TOKEN")).
+			Msg("Failed to create a bot")
 	}
 	var updates tgbotapi.UpdatesChannel
-	log.Printf("Account name: %s", bot.Self.UserName)
+
+	log.Info().Str("username", bot.Self.UserName).Msg("Connected")
+
 	if *noWebhook {
+		log.Debug().Msg("Long-polling")
+
 		_, _ = bot.RemoveWebhook()
 		u := tgbotapi.NewUpdate(0)
 		u.Timeout = 3
 
 		updates, _ = bot.GetUpdatesChan(u)
+
 	} else {
 		_, err = bot.RemoveWebhook()
 
 		if err != nil {
-			log.Fatal(err.Error())
+			log.Fatal().
+				Err(err).
+				Msg("Failed to remove a webhook")
 		}
 
 		_, err = bot.SetWebhook(tgbotapi.NewWebhook(os.Getenv("MADNESS_URL")))
 		if err != nil {
-			log.WithFields(logrus.Fields{
-				"url": os.Getenv("MADNESS_URL"),
-			}).Fatal(err.Error())
+			log.Fatal().
+				Err(err).
+				Str("url", os.Getenv("MADNESS_URL")).
+				Msg("Failed to set a weebhok")
 		}
 
 		info, err := bot.GetWebhookInfo()
 
 		if err != nil {
-			log.Fatal(err.Error())
+			log.Fatal().Err(err).Msg("Failed to get webhook info")
 		} else {
-			log.WithFields(logrus.Fields{
-				"webhook": info,
-			}).Info("Webhook set")
+			log.Info().Interface("webhook", info).Msg("Webhook set")
 		}
 
 		updates = bot.ListenForWebhook(os.Getenv("MADNESS_HOOK"))
@@ -101,14 +109,8 @@ func main() {
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
 	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
 
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
 	for update := range updates {
-		log.WithFields(logrus.Fields{
-			"update": update,
-		}).Debug("Update")
+		log.Debug().Interface("update", update).Msg("Update")
 
 		if update.Message == nil {
 			continue
@@ -117,12 +119,6 @@ func main() {
 		if update.Message.Chat.ID != chatID {
 			continue
 		}
-
-		log.WithFields(logrus.Fields{
-			"uid":      update.Message.From.ID,
-			"username": update.Message.From.UserName,
-			"text":     update.Message.Text,
-		}).Info("Message")
 
 		//if sticker := update.Message.Sticker; sticker != nil {
 		//	if update.Message.From.ID == 370779007 {
@@ -146,6 +142,7 @@ func main() {
 
 		command, exists := commands[update.Message.Command()]
 		if exists {
+			common.Log.Info().Str("command", update.Message.Command()).Msg("Called a command")
 			go command(bot, &update)
 		} else {
 			if sleepRegex.MatchString(update.Message.Text) {
@@ -190,17 +187,13 @@ func main() {
 				}
 				res, err := req.Do()
 				if err != nil {
-					log.WithFields(logrus.Fields{
-						"err": err,
-					}).Warn("Wikipedia lookup")
+					log.Warn().Err(err).Msg("Wikipedia lookup")
 					continue
 				}
 				var data response
 				err = res.Body.FromJsonTo(&data)
 				if err != nil {
-					log.WithFields(logrus.Fields{
-						"err": err,
-					}).Warn("json decode error")
+					log.Warn().Err(err).Msg("Failed to decode JSON")
 				}
 				if len(data.Query.Pages) != 0 && len(data.Query.Pages[0].Extract) != 0 {
 					page := data.Query.Pages[0]

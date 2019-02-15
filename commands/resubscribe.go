@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/franela/goreq"
-	"github.com/sirupsen/logrus"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
 	"os"
@@ -13,12 +12,11 @@ import (
 
 func Resubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if !common.IsAdmin(update.Message.From) {
-		common.Log.Info("Prevented resubscribe")
 		return
 	}
 	bytes, err := ioutil.ReadFile("./data/users.json")
 	if err != nil {
-		common.Log.Warn(err.Error())
+		common.Log.Error().Err(err).Msg("Failed to read users.json")
 		return
 	}
 
@@ -26,15 +24,7 @@ func Resubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	json.Unmarshal(bytes, &users)
 
-	common.Log.WithFields(logrus.Fields{
-		"users": users,
-	}).Info("Users")
-
 	for channel, userID := range users {
-		common.Log.WithFields(logrus.Fields{
-			"channel": channel,
-			"user_id": userID,
-		}).Info("Resubbing")
 		go func(channel string, userID string) {
 			req := goreq.Request{
 				Method: "POST",
@@ -55,11 +45,9 @@ func Resubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			_, err := req.Do()
 
 			if err != nil {
-				common.Log.Warn(err.Error())
+				common.Log.Error().Err(err).Msg("Failed to resubscribe")
 			} else {
-				common.Log.WithFields(logrus.Fields{
-					"user": channel,
-				}).Info("Subscribed")
+				common.Log.Info().Str("channel", channel).Msg("Subscribed")
 			}
 		}(channel, userID)
 	}

@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"github.com/Defman21/madnessBot/common"
 	"gopkg.in/telegram-bot-api.v4"
 	"strings"
 )
@@ -43,11 +42,6 @@ func Swap(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		'.':  'ю',
 		'/':  '.',
 	}
-	defer func() {
-		if err := recover(); err != nil {
-			common.Log.Warn(err)
-		}
-	}()
 	text := update.Message.ReplyToMessage.Text
 	fucked := []rune(strings.ToLower(text))
 	for i, char := range fucked {

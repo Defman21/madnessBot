@@ -27,7 +27,7 @@ func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}.Do()
 
 	if err != nil {
-		common.Log.Warn(err.Error())
+		common.Log.Error().Err(err).Msg("Request failed")
 		return
 	}
 	type VkResponse struct {
@@ -39,7 +39,7 @@ func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				Date        int64  `json:"date"`
 				Pinned      int64  `json:"is_pinned"`
 				Attachments []struct {
-					Type string `json:"type"`
+					Type  string `json:"type"`
 					Photo struct {
 						URL string `json:"photo_604"`
 					} `json:"photo"`

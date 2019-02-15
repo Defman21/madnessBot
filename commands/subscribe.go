@@ -32,7 +32,7 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	res, err := req.Do()
 
 	if err != nil {
-		common.Log.Warn(err.Error())
+		common.Log.Error().Err(err).Msg("Request failed")
 		return
 	} else {
 		type User struct {
@@ -73,7 +73,7 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		var users Users
 		bytes, err := ioutil.ReadFile("./data/users.json")
 		if err != nil {
-			common.Log.Warn(err.Error())
+			common.Log.Error().Err(err).Msg("Failed to read users.json")
 		}
 
 		json.Unmarshal(bytes, &users)
@@ -82,11 +82,11 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		bytes, err = json.Marshal(users)
 
 		if err != nil {
-			common.Log.Warn(err.Error())
+			common.Log.Error().Err(err).Msg("Failed to serialize users")
 		} else {
 			err := ioutil.WriteFile("./data/users.json", bytes, 0644)
 			if err != nil {
-				common.Log.Warn(err.Error())
+				common.Log.Error().Err(err).Msg("Failed to write users.json")
 				return
 			}
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID,
