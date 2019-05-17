@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/Defman21/madnessBot/common"
-	"gopkg.in/gographics/imagick.v2/imagick"
+	"gopkg.in/gographics/imagick.v3/imagick"
 	"gopkg.in/telegram-bot-api.v4"
 	"io"
 	"net/http"
