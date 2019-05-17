@@ -31,8 +31,6 @@ func main() {
 	commands := map[string]func(*tgbotapi.BotAPI, *tgbotapi.Update){
 		"up":          cmds.Up,
 		"news":        cmds.News,
-		"dnevnik":     cmds.Dnevnik,
-		"birthday":    cmds.Birthday,
 		"fuck":        cmds.Swap,
 		"info":        cmds.Info,
 		"subscribe":   cmds.Subscribe,
@@ -43,9 +41,6 @@ func main() {
 		"unsubscribe": cmds.Unsubscribe,
 		"subs":        cmds.Subscribers,
 		"wlogys":      cmds.Wlogys,
-		"quote":       cmds.Quote,
-		"addquote":    cmds.AddQuote,
-		"quotelist":   cmds.QuoteList,
 		"reverse":     cmds.Reverse,
 		"kek":         cmds.Kek,
 		"s":           cmds.Sarcasm,
