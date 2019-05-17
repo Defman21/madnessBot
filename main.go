@@ -44,7 +44,6 @@ func main() {
 		"resubscribe": cmds.Resubscribe,
 		"unsubscribe": cmds.Unsubscribe,
 		"subs":        cmds.Subscribers,
-		"wlogys":      cmds.Wlogys,
 		"reverse":     cmds.Reverse,
 		"kek":         cmds.Kek,
 		"s":           cmds.Sarcasm,
@@ -134,26 +133,6 @@ func main() {
 		if update.Message.Chat.ID != chatID {
 			continue
 		}
-
-		//if sticker := update.Message.Sticker; sticker != nil {
-		//	if update.Message.From.ID == 370779007 {
-		//		if _, banned := cmds.BannedStickers[sticker.FileID]; banned {
-		//			go func(chatid int64, msgid int) {
-		//				_, err := bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
-		//					ChatID:    chatid,
-		//					MessageID: msgid,
-		//				})
-		//				if err != nil {
-		//					log.Warn(err.Error())
-		//				}
-		//			}(update.Message.Chat.ID, update.Message.MessageID)
-		//		}
-		//	}
-		//}
-
-		//if update.Message.From.ID == 370779007 {
-		//	continue
-		//}
 
 		command, exists := commands[update.Message.Command()]
 		if exists {
