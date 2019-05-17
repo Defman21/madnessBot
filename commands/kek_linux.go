@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/Defman21/madnessBot/common"
-	"gopkg.in/gographics/imagick.v2/imagick"
+	"gopkg.in/gographics/imagick.v3/imagick"
 	"gopkg.in/telegram-bot-api.v4"
 	"io"
 	"net/http"
@@ -31,6 +31,7 @@ func Kek(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		imagick.Initialize()
 		defer imagick.Terminate()
 		mw := imagick.NewMagickWand()
+		defer mw.Destroy()
 		mw.ReadImage("zulul.jpg")
 		w := mw.GetImageWidth()
 		h := mw.GetImageHeight()
@@ -43,11 +44,13 @@ func Kek(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			mw.CropImage(w/2, h, 0, 0)
 		}
 		mwr := mw.Clone()
+		defer mwr.Destroy()
 		mwr.FlopImage()
 		mw.AddImage(mwr)
 		mw.SetFirstIterator()
 
 		mwout := mw.AppendImages(false)
+		defer mwout.Destroy()
 		mwout.WriteImage("zulul-done.jpg")
 
 		bot.Send(tgbotapi.NewPhotoUpload(update.Message.Chat.ID, "zulul-done.jpg"))

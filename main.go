@@ -12,6 +12,7 @@ import (
 	"github.com/Defman21/madnessBot/common"
 	"github.com/franela/goreq"
 	"github.com/joho/godotenv"
+	"github.com/marpaia/graphite-golang"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -19,20 +20,21 @@ var log = common.Log
 
 func main() {
 	noWebhook := flag.Bool("nowebhook", false, "Don't use webhooks")
+	useGraphite := flag.Bool("graphite", false, "Use graphite")
 	flag.Parse()
 	err := godotenv.Load()
+
 	if err != nil {
 		log.Fatal().
 			Err(err).
 			Msg("Error loading .env file")
 	}
+
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
 
 	commands := map[string]func(*tgbotapi.BotAPI, *tgbotapi.Update){
 		"up":          cmds.Up,
 		"news":        cmds.News,
-		"dnevnik":     cmds.Dnevnik,
-		"birthday":    cmds.Birthday,
 		"fuck":        cmds.Swap,
 		"info":        cmds.Info,
 		"subscribe":   cmds.Subscribe,
@@ -42,10 +44,6 @@ func main() {
 		"resubscribe": cmds.Resubscribe,
 		"unsubscribe": cmds.Unsubscribe,
 		"subs":        cmds.Subscribers,
-		"wlogys":      cmds.Wlogys,
-		"quote":       cmds.Quote,
-		"addquote":    cmds.AddQuote,
-		"quotelist":   cmds.QuoteList,
 		"reverse":     cmds.Reverse,
 		"kek":         cmds.Kek,
 		"s":           cmds.Sarcasm,
@@ -109,6 +107,22 @@ func main() {
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
 	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
 
+	var Graphite *graphite.Graphite
+
+	if *useGraphite {
+		port, err := strconv.Atoi(os.Getenv("GRAPHITE_PORT"))
+
+		if err != nil {
+			log.Error().Err(err).Msg("Invalid GRAPHITE_PORT")
+		}
+
+		Graphite, err = graphite.NewGraphite(os.Getenv("GRAPHITE_HOST"), port)
+
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to initialize graphite")
+		}
+	}
+
 	for update := range updates {
 		log.Debug().Interface("update", update).Msg("Update")
 
@@ -120,29 +134,16 @@ func main() {
 			continue
 		}
 
-		//if sticker := update.Message.Sticker; sticker != nil {
-		//	if update.Message.From.ID == 370779007 {
-		//		if _, banned := cmds.BannedStickers[sticker.FileID]; banned {
-		//			go func(chatid int64, msgid int) {
-		//				_, err := bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
-		//					ChatID:    chatid,
-		//					MessageID: msgid,
-		//				})
-		//				if err != nil {
-		//					log.Warn(err.Error())
-		//				}
-		//			}(update.Message.Chat.ID, update.Message.MessageID)
-		//		}
-		//	}
-		//}
-
-		//if update.Message.From.ID == 370779007 {
-		//	continue
-		//}
-
 		command, exists := commands[update.Message.Command()]
 		if exists {
 			common.Log.Info().Str("command", update.Message.Command()).Msg("Called a command")
+			if *useGraphite {
+				err = Graphite.SimpleSend(fmt.Sprintf("stats.command.%s", update.Message.Command()), "1")
+				if err != nil {
+					log.Error().Err(err).Msg("Failed to notify graphite")
+				}
+
+			}
 			go command(bot, &update)
 		} else {
 			if sleepRegex.MatchString(update.Message.Text) {
