@@ -1,13 +1,19 @@
-FROM golang:latest
-RUN apt-get update && apt-get install -y libmagickwand-dev
+FROM golang:alpine
+RUN apk update
+RUN apk add imagemagick imagemagick-dev
+RUN apk add git openssh gcc musl-dev
 
-WORKDIR /go/src/github.com/Defman21/madnessBot
+RUN mkdir /app
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go get
+
 COPY . .
-RUN pwd
-RUN ls -la
-ENV GO111MODULE=on
-RUN go install -v ./...
+
+RUN go build -o /app/madnessBot
 
 EXPOSE 9000
-
-CMD ["madnessBot"]
+CMD ["/app/madnessBot"]
