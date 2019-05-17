@@ -16,4 +16,4 @@ COPY . .
 RUN go build -o /app/madnessBot
 
 EXPOSE 9000
-CMD ["/app/madnessBot"]
+CMD ["/app/madnessBot", "-graphite"]
