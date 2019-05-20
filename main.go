@@ -3,16 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/marpaia/graphite-golang"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
+	"time"
 
 	cmds "github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/franela/goreq"
 	"github.com/joho/godotenv"
-	"github.com/marpaia/graphite-golang"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
@@ -98,15 +99,6 @@ func main() {
 		updates = bot.ListenForWebhook(os.Getenv("MADNESS_HOOK"))
 	}
 
-	http.HandleFunc(os.Getenv("TWITCH_HOOK"), madnessTwitch(bot))
-
-	go http.ListenAndServe("0.0.0.0:9000", nil)
-
-	chatID, _ := strconv.ParseInt(os.Getenv("CHAT_ID"), 10, 64)
-	sleepRegex := regexp.MustCompile(`(?i)\Aя\s+спать`)
-	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
-	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
-
 	var Graphite *graphite.Graphite
 
 	if *useGraphite {
@@ -123,6 +115,15 @@ func main() {
 		}
 	}
 
+	http.HandleFunc(os.Getenv("TWITCH_HOOK"), madnessTwitch(bot, Graphite))
+
+	go http.ListenAndServe("0.0.0.0:9000", nil)
+
+	chatID, _ := strconv.ParseInt(os.Getenv("CHAT_ID"), 10, 64)
+	sleepRegex := regexp.MustCompile(`(?i)\Aя\s+спать`)
+	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
+	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
+
 	for update := range updates {
 		log.Debug().Interface("update", update).Msg("Update")
 
@@ -134,13 +135,19 @@ func main() {
 			continue
 		}
 
-		command, exists := commands[update.Message.Command()]
+		commandName := update.Message.Command()
+
+		command, exists := commands[commandName]
 		if exists {
-			common.Log.Info().Str("command", update.Message.Command()).Msg("Called a command")
+			common.Log.Info().Str("command", commandName).Msg("Called a command")
 			if *useGraphite {
-				err = Graphite.SimpleSend(fmt.Sprintf("stats.command.%s", update.Message.Command()), "1")
+				metric := graphite.NewMetric(
+					fmt.Sprintf("stats.command.%s", commandName), "1",
+					time.Now().Unix(),
+				)
+				err = Graphite.SendMetric(metric)
 				if err != nil {
-					log.Error().Err(err).Msg("Failed to notify graphite")
+					log.Error().Err(err).Msg("Failed to send metric")
 				}
 
 			}
