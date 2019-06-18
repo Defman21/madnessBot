@@ -28,7 +28,7 @@ func init() {
 	common.SetLogLevel()
 }
 
-var log = common.Log
+var log = &common.Log
 
 func main() {
 	noWebhook := flag.Bool("nowebhook", false, "Don't use webhooks")
