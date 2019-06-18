@@ -28,7 +28,7 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			Login: channel,
 		},
 	}
-	req.AddHeader("Client-ID", os.Getenv("TWITCH_TOKEN"))
+	common.OauthSingleton.AddHeaders(&req)
 	res, err := req.Do()
 
 	if err != nil {
@@ -67,7 +67,7 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 					user.Data[0].ID),
 			},
 		}
-		req.AddHeader("Client-ID", os.Getenv("TWITCH_TOKEN"))
+		common.OauthSingleton.AddHeaders(&req)
 		_, err := req.Do()
 
 		var users Users
