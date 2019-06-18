@@ -17,6 +17,17 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
+func init() {
+	err := godotenv.Load()
+
+	if err != nil {
+		fmt.Printf("Failed to load .env")
+		os.Exit(1)
+	}
+
+	common.SetLogLevel()
+}
+
 var log = common.Log
 
 func main() {
