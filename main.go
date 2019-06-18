@@ -17,19 +17,23 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
+func init() {
+	err := godotenv.Load()
+
+	if err != nil {
+		fmt.Printf("Failed to load .env")
+		os.Exit(1)
+	}
+
+	common.SetLogLevel()
+}
+
 var log = common.Log
 
 func main() {
 	noWebhook := flag.Bool("nowebhook", false, "Don't use webhooks")
 	useGraphite := flag.Bool("graphite", false, "Use graphite")
 	flag.Parse()
-	err := godotenv.Load()
-
-	if err != nil {
-		log.Fatal().
-			Err(err).
-			Msg("Error loading .env file")
-	}
 
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
 
@@ -124,11 +128,16 @@ func main() {
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
 	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
 
-	go common.OauthSingleton.Load()
+	go common.TwitchOauthState.Load()
+	go common.ResubscribeState.Load()
 
 	for update := range updates {
-		if time.Now().Local().After(common.OauthSingleton.ExpiresAt) {
-			go common.OauthSingleton.Refresh()
+		if time.Now().Local().After(common.TwitchOauthState.ExpiresAt) {
+			go common.TwitchOauthState.Refresh()
+		}
+
+		if time.Now().Local().After(common.ResubscribeState.ExpiresAt) {
+			go cmds.Resubscribe(bot, &update)
 		}
 
 		log.Debug().Interface("update", update).Msg("Update")

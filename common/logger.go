@@ -8,7 +8,7 @@ import (
 
 var Log = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC822}).With().Timestamp().Logger()
 
-func init() {
+func SetLogLevel() {
 	levels := map[string]zerolog.Level{
 		"DEBUG": zerolog.DebugLevel,
 		"INFO":  zerolog.InfoLevel,

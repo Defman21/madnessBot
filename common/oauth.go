@@ -12,17 +12,17 @@ import (
 	"time"
 )
 
-type Oauth struct {
+type TwitchOauth struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 	ExpiresIn    int    `json:"expires_in"`
 	ExpiresAt    time.Time
 }
 
-const File = ".twitch-state.gob"
+const File = "./data/twitch-state.gob"
 const OauthUrl = "https://id.twitch.tv/oauth2/token"
 
-func (o *Oauth) Load() error {
+func (o *TwitchOauth) Load() error {
 	if _, err := os.Stat(File); err == nil {
 		file, err := os.OpenFile(File, os.O_RDONLY, os.ModePerm)
 		defer file.Close()
@@ -40,7 +40,7 @@ func (o *Oauth) Load() error {
 			return err
 		}
 
-		Log.Info().Interface("oauth", o).Msg("Read twitch state successfully")
+		Log.Info().Interface("state", o).Msg("Loaded twitch oauth state")
 	} else if os.IsNotExist(err) {
 		if err = o.Authorize(); err != nil {
 			Log.Error().Err(err).Msg("Failed to authorize")
@@ -59,7 +59,7 @@ func (o *Oauth) Load() error {
 	return nil
 }
 
-func (o *Oauth) Save() error {
+func (o *TwitchOauth) Save() error {
 	file, err := os.OpenFile(File, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	defer file.Close()
 
@@ -75,10 +75,11 @@ func (o *Oauth) Save() error {
 		return err
 	}
 
+	Log.Info().Interface("state", o).Msg("Saved twitch auth state")
 	return nil
 }
 
-func (o *Oauth) Authorize() error {
+func (o *TwitchOauth) Authorize() error {
 	queryParams := url.Values{}
 	queryParams.Add("client_id", os.Getenv("TWITCH_CLIENT_ID"))
 	queryParams.Add("client_secret", os.Getenv("TWITCH_CLIENT_SECRET"))
@@ -127,22 +128,22 @@ func (o *Oauth) Authorize() error {
 	return nil
 }
 
-func (o *Oauth) Refresh() {
+func (o *TwitchOauth) Refresh() {
 	_ = o.Authorize()
 	_ = o.Save()
 }
 
-func (o *Oauth) UpdateExpire() {
+func (o *TwitchOauth) UpdateExpire() {
 	o.ExpiresAt = time.Now().Local().Add(time.Second * time.Duration(o.ExpiresIn))
 }
 
-func (o *Oauth) AddHeaders(request *goreq.Request) {
+func (o *TwitchOauth) AddHeaders(request *goreq.Request) {
 	request.AddHeader("Client-ID", os.Getenv("TWITCH_CLIENT_ID"))
 	request.AddHeader("Authorization", fmt.Sprintf("Bearer %s", o.AccessToken))
 }
 
-var OauthSingleton *Oauth
+var TwitchOauthState *TwitchOauth
 
 func init() {
-	OauthSingleton = &Oauth{}
+	TwitchOauthState = &TwitchOauth{}
 }
