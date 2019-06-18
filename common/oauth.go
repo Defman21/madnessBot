@@ -19,7 +19,7 @@ type Oauth struct {
 	ExpiresAt    time.Time
 }
 
-const File = ".twitch-state.gob"
+const File = "./data/twitch-state.gob"
 const OauthUrl = "https://id.twitch.tv/oauth2/token"
 
 func (o *Oauth) Load() error {
