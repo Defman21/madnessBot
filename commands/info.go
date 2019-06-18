@@ -32,7 +32,7 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			UserLogin: channel,
 		},
 	}
-	common.OauthSingleton.AddHeaders(&req)
+	common.TwitchOauthState.AddHeaders(&req)
 	res, err := req.Do()
 
 	if err != nil {
@@ -65,7 +65,7 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				ID: data.Data[0].Game,
 			},
 		}
-		common.OauthSingleton.AddHeaders(&req)
+		common.TwitchOauthState.AddHeaders(&req)
 		res, err = req.Do()
 
 		if err != nil {

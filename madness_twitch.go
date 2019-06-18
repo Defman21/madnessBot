@@ -68,7 +68,7 @@ func madnessTwitch(bot *tgbotapi.BotAPI, graphiteSrv *graphite.Graphite) http.Ha
 						ID: notification.Data[0].Game,
 					},
 				}
-				common.OauthSingleton.AddHeaders(&req)
+				common.TwitchOauthState.AddHeaders(&req)
 				res, err := req.Do()
 
 				if err != nil {
