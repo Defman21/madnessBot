@@ -2,3 +2,5 @@
 *.exe
 *.komodoproject
 data/
+.twitch-state.gob
+madnessBot

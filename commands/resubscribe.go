@@ -41,7 +41,7 @@ func Resubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 					HubTopic:        fmt.Sprintf("https://api.twitch.tv/helix/streams?user_id=%s", userID),
 				},
 			}
-			req.AddHeader("Client-ID", os.Getenv("TWITCH_TOKEN"))
+			common.OauthSingleton.AddHeaders(&req)
 			_, err := req.Do()
 
 			if err != nil {

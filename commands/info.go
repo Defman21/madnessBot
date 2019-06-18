@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -33,7 +32,7 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			UserLogin: channel,
 		},
 	}
-	req.AddHeader("Client-ID", os.Getenv("TWITCH_TOKEN"))
+	common.OauthSingleton.AddHeaders(&req)
 	res, err := req.Do()
 
 	if err != nil {
@@ -66,7 +65,7 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				ID: data.Data[0].Game,
 			},
 		}
-		req.AddHeader("Client-ID", os.Getenv("TWITCH_TOKEN"))
+		common.OauthSingleton.AddHeaders(&req)
 		res, err = req.Do()
 
 		if err != nil {

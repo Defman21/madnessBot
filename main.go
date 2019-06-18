@@ -124,7 +124,13 @@ func main() {
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
 	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
 
+	go common.OauthSingleton.Load()
+
 	for update := range updates {
+		if time.Now().Local().After(common.OauthSingleton.ExpiresAt) {
+			go common.OauthSingleton.Refresh()
+		}
+
 		log.Debug().Interface("update", update).Msg("Update")
 
 		if update.Message == nil {

@@ -34,7 +34,6 @@ func madnessTwitch(bot *tgbotapi.BotAPI, graphiteSrv *graphite.Graphite) http.Ha
 			} `json:"data"`
 		}
 		bytes, _ := ioutil.ReadAll(r.Body)
-		common.Log.Info().Interface("request", r).Msg("Request")
 
 		challenge := r.FormValue("hub.challenge")
 		if len(challenge) > 1 {
@@ -69,7 +68,7 @@ func madnessTwitch(bot *tgbotapi.BotAPI, graphiteSrv *graphite.Graphite) http.Ha
 						ID: notification.Data[0].Game,
 					},
 				}
-				req.AddHeader("Client-ID", os.Getenv("TWITCH_TOKEN"))
+				common.OauthSingleton.AddHeaders(&req)
 				res, err := req.Do()
 
 				if err != nil {
