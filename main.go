@@ -129,10 +129,15 @@ func main() {
 	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
 
 	go common.TwitchOauthState.Load()
+	go common.ResubscribeState.Load()
 
 	for update := range updates {
 		if time.Now().Local().After(common.TwitchOauthState.ExpiresAt) {
 			go common.TwitchOauthState.Refresh()
+		}
+
+		if time.Now().Local().After(common.ResubscribeState.ExpiresAt) {
+			go cmds.Resubscribe(bot, &update)
 		}
 
 		log.Debug().Interface("update", update).Msg("Update")

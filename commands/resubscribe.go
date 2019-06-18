@@ -51,4 +51,6 @@ func Resubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			}
 		}(channel, userID)
 	}
+
+	common.ResubscribeState.Save()
 }
