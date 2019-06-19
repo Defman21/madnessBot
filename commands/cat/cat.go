@@ -15,6 +15,9 @@ func (c *Command) UseLua() bool {
 }
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	placeholder := tgbotapi.NewMessage(update.Message.Chat.ID, "ищу котека...")
+	placeholderMessage, _ := api.Send(placeholder)
+
 	photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	photo.FileID = fmt.Sprintf("https://thecatapi.com/api/images/get?type=jpg,png&%s", timestamp)
@@ -25,6 +28,11 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		msg := fmt.Sprintf("Кот не нашелбся....")
 		_, _ = api.Send(tgbotapi.NewMessage(update.Message.Chat.ID, msg))
 	}
+
+	_, _ = api.DeleteMessage(tgbotapi.DeleteMessageConfig{
+		MessageID: placeholderMessage.MessageID,
+		ChatID:    placeholderMessage.Chat.ID,
+	})
 
 }
 
