@@ -12,6 +12,7 @@ import (
 
 	cmds "github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/metrics"
 	"github.com/franela/goreq"
 	"github.com/joho/godotenv"
 	"gopkg.in/telegram-bot-api.v4"
@@ -103,23 +104,11 @@ func main() {
 		updates = bot.ListenForWebhook(os.Getenv("MADNESS_HOOK"))
 	}
 
-	var Graphite *graphite.Graphite
-
 	if *useGraphite {
-		port, err := strconv.Atoi(os.Getenv("GRAPHITE_PORT"))
-
-		if err != nil {
-			log.Error().Err(err).Msg("Invalid GRAPHITE_PORT")
-		}
-
-		Graphite, err = graphite.NewGraphite(os.Getenv("GRAPHITE_HOST"), port)
-
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to initialize graphite")
-		}
+		metrics.Init()
 	}
 
-	http.HandleFunc(os.Getenv("TWITCH_HOOK"), madnessTwitch(bot, Graphite))
+	http.HandleFunc(os.Getenv("TWITCH_HOOK"), madnessTwitch(bot))
 
 	go http.ListenAndServe("0.0.0.0:9000", nil)
 
@@ -155,17 +144,10 @@ func main() {
 		command, exists := commands[commandName]
 		if exists {
 			common.Log.Info().Str("command", commandName).Msg("Called a command")
-			if *useGraphite {
-				metric := graphite.NewMetric(
-					fmt.Sprintf("stats.command.%s", commandName), "1",
-					time.Now().Unix(),
-				)
-				err = Graphite.SendMetric(metric)
-				if err != nil {
-					log.Error().Err(err).Msg("Failed to send metric")
-				}
-
-			}
+			metrics.Graphite().Send(graphite.NewMetric(
+				fmt.Sprintf("stats.command.%s", commandName), "1",
+				time.Now().Unix(),
+			))
 			go command(bot, &update)
 		} else {
 			if sleepRegex.MatchString(update.Message.Text) {
