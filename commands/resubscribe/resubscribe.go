@@ -3,6 +3,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
@@ -11,7 +12,14 @@ import (
 	"os"
 )
 
-func Resubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+type Command struct{}
+type Users map[string]string
+
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if !common.IsAdmin(update.Message.From) {
 		return
 	}
@@ -54,4 +62,8 @@ func Resubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	common.ResubscribeState.Save()
+}
+
+func init() {
+	commands.Register("resubscribe", &Command{})
 }

@@ -3,6 +3,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
@@ -11,13 +12,20 @@ import (
 	"os"
 )
 
-func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+type Command struct{}
+type Users map[string]string
+
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
 
 	if channel == "" {
 		msg := tgbotapi.NewVoiceShare(update.Message.Chat.ID,
 			"AwADAgADwgADC6ZpS13yfdzm_pTzAg")
-		bot.Send(msg)
+		api.Send(msg)
 		return
 	}
 
@@ -62,7 +70,7 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				err = ioutil.WriteFile("./data/users.json", []byte(jsonStr), 0644)
 				if err == nil {
 					common.Log.Info().Msg("Updated users.json")
-					bot.Send(
+					api.Send(
 						tgbotapi.NewMessage(
 							update.Message.Chat.ID,
 							fmt.Sprintf("Unsubscribed from %s", channel),
@@ -76,4 +84,8 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	} else {
 		common.Log.Warn().Str("channel", channel).Msg("Channel not found")
 	}
+}
+
+func init() {
+	commands.Register("unsubscribe", &Command{})
 }

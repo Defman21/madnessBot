@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/Defman21/madnessBot/commands"
 	"strconv"
 	"strings"
 	"time"
@@ -12,14 +13,19 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-// Info omegalul
-func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+type Command struct{}
+
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
 
 	if channel == "" {
 		msg := tgbotapi.NewVoiceShare(update.Message.Chat.ID,
 			"AwADAgADwgADC6ZpS13yfdzm_pTzAg")
-		bot.Send(msg)
+		api.Send(msg)
 		return
 	}
 
@@ -89,13 +95,17 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 https://twitch.tv/%s`
 		photo.Caption = fmt.Sprintf(tpl, channel, data.Data[0].Title,
 			data.Data[0].Viewers, gdata.Data[0].Name, channel)
-		bot.Send(photo)
+		api.Send(photo)
 	} else {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID,
 			"Етот пидор ниче не стримит")
-		bot.Send(msg)
+		api.Send(msg)
 		sticker := tgbotapi.NewStickerShare(update.Message.Chat.ID,
 			"CAADAgADIwAD43TSFjrD9SW8bXfjAg")
-		bot.Send(sticker)
+		api.Send(sticker)
 	}
+}
+
+func init() {
+	commands.Register("info", &Command{})
 }

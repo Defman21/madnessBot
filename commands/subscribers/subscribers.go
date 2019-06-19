@@ -3,13 +3,20 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
 )
 
-// Subscribers list subscribers
-func Subscribers(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+type Command struct{}
+type Users map[string]string
+
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	bytes, err := ioutil.ReadFile("./data/users.json")
 	if err != nil {
 		common.Log.Error().Err(err).Msg("Failed to read users.json")
@@ -28,5 +35,9 @@ func Subscribers(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, subscribers)
 	msg.ReplyToMessageID = update.Message.MessageID
 
-	bot.Send(msg)
+	api.Send(msg)
+}
+
+func init() {
+	commands.Register("subs", &Command{})
 }

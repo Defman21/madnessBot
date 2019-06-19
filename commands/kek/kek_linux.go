@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"gopkg.in/gographics/imagick.v3/imagick"
 	"gopkg.in/telegram-bot-api.v4"
@@ -9,19 +10,24 @@ import (
 	"os"
 )
 
-// Kek lul
-func Kek(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
-	if !payCheck(bot, update) {
+type Command struct{}
+
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	if !commands.PayCheck(api, update) {
 		return
 	}
-	photos, err := bot.GetUserProfilePhotos(tgbotapi.NewUserProfilePhotos(update.Message.From.ID))
+	photos, err := api.GetUserProfilePhotos(tgbotapi.NewUserProfilePhotos(update.Message.From.ID))
 	if err != nil {
 		common.Log.Warn().Err(err).Msg("Failed to get user profile photo")
 	} else {
 		direction := update.Message.CommandArguments()
 		zulul := photos.Photos[0]
 		photo := zulul[len(zulul)-1]
-		url, _ := bot.GetFileDirectURL(photo.FileID)
+		url, _ := api.GetFileDirectURL(photo.FileID)
 		img, _ := os.Create("zulul.jpg")
 		defer img.Close()
 
@@ -53,6 +59,10 @@ func Kek(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		defer mwout.Destroy()
 		mwout.WriteImage("zulul-done.jpg")
 
-		bot.Send(tgbotapi.NewPhotoUpload(update.Message.Chat.ID, "zulul-done.jpg"))
+		api.Send(tgbotapi.NewPhotoUpload(update.Message.Chat.ID, "zulul-done.jpg"))
 	}
+}
+
+func init() {
+	commands.Register("kek", &Command{})
 }

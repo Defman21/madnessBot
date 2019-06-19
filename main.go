@@ -3,18 +3,36 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/marpaia/graphite-golang"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"time"
 
-	cmds "github.com/Defman21/madnessBot/commands"
+	"github.com/Defman21/madnessBot/commands"
+	_ "github.com/Defman21/madnessBot/commands/cat"
+	_ "github.com/Defman21/madnessBot/commands/donate"
+	_ "github.com/Defman21/madnessBot/commands/info"
+	_ "github.com/Defman21/madnessBot/commands/kek"
+	_ "github.com/Defman21/madnessBot/commands/me"
+	_ "github.com/Defman21/madnessBot/commands/music"
+	_ "github.com/Defman21/madnessBot/commands/news"
+	_ "github.com/Defman21/madnessBot/commands/resubscribe"
+	_ "github.com/Defman21/madnessBot/commands/reverse"
+	_ "github.com/Defman21/madnessBot/commands/sarcasm"
+	_ "github.com/Defman21/madnessBot/commands/subscribe"
+	_ "github.com/Defman21/madnessBot/commands/subscribers"
+	_ "github.com/Defman21/madnessBot/commands/swap"
+	_ "github.com/Defman21/madnessBot/commands/unsubscribe"
+	_ "github.com/Defman21/madnessBot/commands/up"
+	_ "github.com/Defman21/madnessBot/commands/version"
+
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/metrics"
+
 	"github.com/Defman21/madnessBot/common/oauth"
 	_ "github.com/Defman21/madnessBot/common/oauth/twitch"
+
 	"github.com/franela/goreq"
 	"github.com/joho/godotenv"
 	"gopkg.in/telegram-bot-api.v4"
@@ -39,25 +57,6 @@ func main() {
 	flag.Parse()
 
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
-
-	commands := map[string]func(*tgbotapi.BotAPI, *tgbotapi.Update){
-		"up":          cmds.Up,
-		"news":        cmds.News,
-		"fuck":        cmds.Swap,
-		"info":        cmds.Info,
-		"subscribe":   cmds.Subscribe,
-		"cat":         cmds.Cat,
-		"music":       cmds.Music,
-		"me":          cmds.Me,
-		"resubscribe": cmds.Resubscribe,
-		"unsubscribe": cmds.Unsubscribe,
-		"subs":        cmds.Subscribers,
-		"reverse":     cmds.Reverse,
-		"kek":         cmds.Kek,
-		"s":           cmds.Sarcasm,
-		"version":     cmds.Version,
-		"donate":      cmds.Donate,
-	}
 
 	if err != nil {
 		log.Fatal().
@@ -117,7 +116,7 @@ func main() {
 	chatID, _ := strconv.ParseInt(os.Getenv("CHAT_ID"), 10, 64)
 	sleepRegex := regexp.MustCompile(`(?i)\Aя\s+спать`)
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
-	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
+	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^?]+)`)
 
 	go common.ResubscribeState.Load()
 
@@ -125,7 +124,7 @@ func main() {
 		oauth.RefreshExpired()
 
 		if time.Now().Local().After(common.ResubscribeState.ExpiresAt) {
-			go cmds.Resubscribe(bot, &update)
+			go commands.Run("resubscribe", bot, &update)
 		}
 
 		log.Debug().Interface("update", update).Msg("Update")
@@ -139,19 +138,10 @@ func main() {
 		}
 
 		commandName := update.Message.Command()
-
-		command, exists := commands[commandName]
-		if exists {
-			common.Log.Info().Str("command", commandName).Msg("Called a command")
-			metrics.Graphite().Send(graphite.NewMetric(
-				fmt.Sprintf("stats.command.%s", commandName), "1",
-				time.Now().Unix(),
-			))
-			go command(bot, &update)
-		} else {
+		if ran := commands.Run(commandName, bot, &update); !ran {
 			if sleepRegex.MatchString(update.Message.Text) {
 				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Споки <3"))
-				cmds.Cat(bot, &update)
+				commands.Run("cat", bot, &update)
 			} else if sadRegex.MatchString(update.Message.Text) {
 				msg := tgbotapi.NewStickerShare(update.Message.Chat.ID,
 					"CAADAgAD9wIAAlwCZQO1cgzUpY4T7wI")

@@ -1,16 +1,22 @@
 package commands
 
 import (
+	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-// Sarcasm sarcasm looool
-func Sarcasm(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "</sarcasm>")
-	bot.Send(msg)
+type Command struct{}
 
-	_, err := bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "</sarcasm>")
+	api.Send(msg)
+
+	_, err := api.DeleteMessage(tgbotapi.DeleteMessageConfig{
 		ChatID:    update.Message.Chat.ID,
 		MessageID: update.Message.MessageID,
 	})
@@ -18,4 +24,8 @@ func Sarcasm(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if err != nil {
 		common.Log.Error().Err(err).Msg("Failed to send a message")
 	}
+}
+
+func init() {
+	commands.Register("sacrasm", &Command{})
 }

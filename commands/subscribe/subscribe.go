@@ -3,6 +3,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
@@ -11,14 +12,19 @@ import (
 	"os"
 )
 
+type Command struct{}
 type Users map[string]string
 
-func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
 	if channel == "" {
 		msg := tgbotapi.NewVoiceShare(update.Message.Chat.ID,
 			"AwADAgADwgADC6ZpS13yfdzm_pTzAg")
-		bot.Send(msg)
+		api.Send(msg)
 		return
 	}
 	req := goreq.Request{
@@ -48,7 +54,7 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 		if len(user.Data) == 0 {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Такого пидора нет")
-			bot.Send(msg)
+			api.Send(msg)
 			return
 		}
 
@@ -94,7 +100,11 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				fmt.Sprintf("Бот теперь аки маньяк будет преследовать %s "+
 					"до конца своих дней.",
 					channel))
-			bot.Send(msg)
+			api.Send(msg)
 		}
 	}
+}
+
+func init() {
+	commands.Register("subscribe", &Command{})
 }

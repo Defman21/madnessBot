@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/Defman21/madnessBot/commands"
 	"os"
 	"time"
 
@@ -10,7 +11,13 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+type Command struct{}
+
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	res, err := goreq.Request{
 		Uri: "https://api.vk.com/method/wall.get",
 		QueryString: struct {
@@ -74,4 +81,8 @@ func News(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
 	bot.Send(msg)
+}
+
+func init() {
+	commands.Register("news", &Command{})
 }

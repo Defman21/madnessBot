@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/Defman21/madnessBot/commands"
 	"time"
 
 	"github.com/Defman21/madnessBot/common"
@@ -9,7 +10,13 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-func Music(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+type Command struct{}
+
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	room := update.Message.CommandArguments()
 
 	if room == "" {
@@ -39,7 +46,7 @@ func Music(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	res.Body.FromJsonTo(&response)
 
 	if response.Data.CurrentSong.ID == "" {
-		bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("В комнате %s тихо", room)))
+		api.Send(tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("В комнате %s тихо", room)))
 		return
 	}
 	var url string
@@ -50,5 +57,9 @@ func Music(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	msg := fmt.Sprintf("В комнате %s играет %s\n%s", room, response.Data.CurrentSong.Name, url)
-	bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, msg))
+	api.Send(tgbotapi.NewMessage(update.Message.Chat.ID, msg))
+}
+
+func init() {
+	commands.Register("music", &Command{})
 }

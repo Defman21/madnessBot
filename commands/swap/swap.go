@@ -1,12 +1,18 @@
 package commands
 
 import (
+	"github.com/Defman21/madnessBot/commands"
 	"gopkg.in/telegram-bot-api.v4"
 	"strings"
 )
 
-// Swap luuul
-func Swap(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
+type Command struct{}
+
+func (c *Command) UseLua() bool {
+	return false
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	dict := map[rune]rune{
 		'q':  'й',
 		'w':  'ц',
@@ -56,5 +62,9 @@ func Swap(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, string(fucked))
 	msg.ReplyToMessageID = update.Message.MessageID
 
-	bot.Send(msg)
+	api.Send(msg)
+}
+
+func init() {
+	commands.Register("swap", &Command{})
 }
