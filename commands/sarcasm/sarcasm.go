@@ -19,5 +19,5 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 }
 
 func init() {
-	commands.Register("sacrasm", &Command{})
+	commands.Register("s", &Command{})
 }
