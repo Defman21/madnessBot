@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/metrics"
+	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
 	"github.com/marpaia/graphite-golang"
 	"gopkg.in/telegram-bot-api.v4"
@@ -81,7 +82,7 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 							ID: notification.Data[0].Game,
 						},
 					}
-					common.TwitchOauthState.AddHeaders(&req)
+					oauth.AddHeadersUsing("twitch", &req)
 					res, err := req.Do()
 
 					if err != nil {

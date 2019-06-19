@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
@@ -28,7 +29,7 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			Login: channel,
 		},
 	}
-	common.TwitchOauthState.AddHeaders(&req)
+	oauth.AddHeadersUsing("twitch", &req)
 	res, err := req.Do()
 
 	if err != nil {
@@ -67,7 +68,7 @@ func Subscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 					user.Data[0].ID),
 			},
 		}
-		common.TwitchOauthState.AddHeaders(&req)
+		oauth.AddHeadersUsing("twitch", &req)
 		_, err := req.Do()
 
 		var users Users

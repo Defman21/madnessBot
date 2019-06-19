@@ -13,6 +13,8 @@ import (
 	cmds "github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/metrics"
+	"github.com/Defman21/madnessBot/common/oauth"
+	_ "github.com/Defman21/madnessBot/common/oauth/twitch"
 	"github.com/franela/goreq"
 	"github.com/joho/godotenv"
 	"gopkg.in/telegram-bot-api.v4"
@@ -117,13 +119,10 @@ func main() {
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
 	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^\?]+)`)
 
-	go common.TwitchOauthState.Load()
 	go common.ResubscribeState.Load()
 
 	for update := range updates {
-		if time.Now().Local().After(common.TwitchOauthState.ExpiresAt) {
-			go common.TwitchOauthState.Refresh()
-		}
+		oauth.RefreshExpired()
 
 		if time.Now().Local().After(common.ResubscribeState.ExpiresAt) {
 			go cmds.Resubscribe(bot, &update)
