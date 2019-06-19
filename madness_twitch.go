@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/metrics"
+	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
 	"github.com/marpaia/graphite-golang"
 	"gopkg.in/telegram-bot-api.v4"
@@ -20,7 +22,7 @@ func init() {
 	notificationIds = make(map[string]bool)
 }
 
-func madnessTwitch(bot *tgbotapi.BotAPI, graphiteSrv *graphite.Graphite) http.HandlerFunc {
+func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		name := r.URL.Path[len(os.Getenv("TWITCH_HOOK")):]
 		type Notification struct {
@@ -80,7 +82,7 @@ func madnessTwitch(bot *tgbotapi.BotAPI, graphiteSrv *graphite.Graphite) http.Ha
 							ID: notification.Data[0].Game,
 						},
 					}
-					common.TwitchOauthState.AddHeaders(&req)
+					oauth.AddHeadersUsing("twitch", &req)
 					res, err := req.Do()
 
 					if err != nil {
@@ -112,16 +114,10 @@ https://twitch.tv/%s
 				photo.Caption = message
 				bot.Send(photo)
 
-				if graphiteSrv != nil {
-					metric := graphite.NewMetric(
-						fmt.Sprintf("stats.stream_push.%s", name), "1",
-						time.Now().Unix(),
-					)
-
-					if err := graphiteSrv.SendMetric(metric); err != nil {
-						log.Error().Err(err).Msg("Failed to send metric")
-					}
-				}
+				metrics.Graphite().Send(graphite.NewMetric(
+					fmt.Sprintf("stats.stream_push.%s", name), "1",
+					time.Now().Unix(),
+				))
 			}
 		}
 	}

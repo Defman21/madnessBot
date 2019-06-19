@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
 	"gopkg.in/telegram-bot-api.v4"
 )
@@ -32,7 +33,7 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			UserLogin: channel,
 		},
 	}
-	common.TwitchOauthState.AddHeaders(&req)
+	oauth.AddHeadersUsing("twitch", &req)
 	res, err := req.Do()
 
 	if err != nil {
@@ -65,7 +66,7 @@ func Info(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				ID: data.Data[0].Game,
 			},
 		}
-		common.TwitchOauthState.AddHeaders(&req)
+		oauth.AddHeadersUsing("twitch", &req)
 		res, err = req.Do()
 
 		if err != nil {

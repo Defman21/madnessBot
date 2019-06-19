@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
 	"gopkg.in/telegram-bot-api.v4"
 	"io/ioutil"
@@ -47,7 +48,7 @@ func Unsubscribe(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 					HubTopic:        fmt.Sprintf("https://api.twitch.tv/helix/streams?user_id=%s", userID),
 				},
 			}
-			common.TwitchOauthState.AddHeaders(&req)
+			oauth.AddHeadersUsing("twitch", &req)
 			_, err := req.Do()
 
 			if err != nil {
