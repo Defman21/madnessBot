@@ -111,10 +111,12 @@ https://twitch.tv/%s
 				photo.UseExisting = true
 				photo.Caption = message
 				bot.Send(photo)
-				metric := graphite.NewMetric(
-					fmt.Sprintf("stats.stream_push.%s", name), "1",
-					time.Now().Unix(),
-				)
+
+				if graphiteSrv != nil {
+					metric := graphite.NewMetric(
+						fmt.Sprintf("stats.stream_push.%s", name), "1",
+						time.Now().Unix(),
+					)
 
 					if err := graphiteSrv.SendMetric(metric); err != nil {
 						log.Error().Err(err).Msg("Failed to send metric")
