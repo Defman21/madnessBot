@@ -16,25 +16,32 @@ func (c *Command) UseLua() bool {
 }
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
-	placeholder := tgbotapi.NewMessage(update.Message.Chat.ID, "ищу котека...")
+	placeholder := tgbotapi.NewPhotoShare(
+		update.Message.Chat.ID,
+		"https://static.thenounproject.com/png/101791-200.png",
+	)
+	placeholder.Caption = "ищу котека..."
 	placeholderMessage, _ := api.Send(placeholder)
 
-	photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-	photo.FileID = fmt.Sprintf("https://thecatapi.com/api/images/get?type=jpg,png&%s", timestamp)
-	photo.UseExisting = true
 
-	_, err := api.Send(photo)
-	if err != nil {
-		msg := fmt.Sprintf("Кот не нашелбся....")
-		_, _ = api.Send(tgbotapi.NewMessage(update.Message.Chat.ID, msg))
+	editmsg := tgbotapi.EditMessageMediaConfig{
+		BaseEdit: tgbotapi.BaseEdit{
+			ChatID:    placeholderMessage.Chat.ID,
+			MessageID: placeholderMessage.MessageID,
+		},
+		Media: tgbotapi.BaseInputMedia{
+			Type:    "photo",
+			Media:   fmt.Sprintf("https://thecatapi.com/api/images/get?type=jpg,png&%s", timestamp),
+			Caption: "котек найден!",
+		},
 	}
 
-	_, _ = api.DeleteMessage(tgbotapi.DeleteMessageConfig{
-		MessageID: placeholderMessage.MessageID,
-		ChatID:    placeholderMessage.Chat.ID,
-	})
+	_, err := api.Send(editmsg)
 
+	if err != nil {
+		common.Log.Error().Err(err).Msg("Failed to edit a message")
+	}
 }
 
 func init() {
