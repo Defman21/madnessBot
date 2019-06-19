@@ -60,30 +60,40 @@ func madnessTwitch(bot *tgbotapi.BotAPI, graphiteSrv *graphite.Graphite) http.Ha
 					return
 				}
 				notificationIds[notification.Data[0].NotificationID] = true
-				req := goreq.Request{
-					Uri: "https://api.twitch.tv/helix/games",
-					QueryString: struct {
-						ID string
-					}{
-						ID: notification.Data[0].Game,
-					},
-				}
-				common.TwitchOauthState.AddHeaders(&req)
-				res, err := req.Do()
 
-				if err != nil {
-					common.Log.Error().Err(err).Msg("Request failed")
-					return
+				type game struct {
+					Name string
 				}
 
 				type gameResponse struct {
-					Data []struct {
-						Name string
-					}
+					Data []*game
 				}
 
 				var data gameResponse
-				res.Body.FromJsonTo(&data)
+
+				if notification.Data[0].Game != "0" {
+					req := goreq.Request{
+						Uri: "https://api.twitch.tv/helix/games",
+						QueryString: struct {
+							ID string
+						}{
+							ID: notification.Data[0].Game,
+						},
+					}
+					common.TwitchOauthState.AddHeaders(&req)
+					res, err := req.Do()
+
+					if err != nil {
+						common.Log.Error().Err(err).Msg("Request failed")
+						return
+					}
+
+					res.Body.FromJsonTo(&data)
+				} else {
+					data = gameResponse{
+						Data: []*game{{Name: "не указана"}},
+					}
+				}
 
 				tpl := `%s завел подрубочку!
 %s
@@ -106,8 +116,9 @@ https://twitch.tv/%s
 					time.Now().Unix(),
 				)
 
-				if err := graphiteSrv.SendMetric(metric); err != nil {
-					log.Error().Err(err).Msg("Failed to send metric")
+					if err := graphiteSrv.SendMetric(metric); err != nil {
+						log.Error().Err(err).Msg("Failed to send metric")
+					}
 				}
 			}
 		}
