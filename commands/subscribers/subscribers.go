@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
-	"gopkg.in/telegram-bot-api.v4"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io/ioutil"
 )
 

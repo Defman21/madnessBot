@@ -34,8 +34,8 @@ import (
 	_ "github.com/Defman21/madnessBot/common/oauth/twitch"
 
 	"github.com/franela/goreq"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
-	"gopkg.in/telegram-bot-api.v4"
 )
 
 func init() {
@@ -70,15 +70,15 @@ func main() {
 
 	if *noWebhook {
 		log.Debug().Msg("Long-polling")
+		_, _ = bot.Request(tgbotapi.RemoveWebhookConfig{})
 
-		_, _ = bot.RemoveWebhook()
 		u := tgbotapi.NewUpdate(0)
 		u.Timeout = 3
 
-		updates, _ = bot.GetUpdatesChan(u)
+		updates = bot.GetUpdatesChan(u)
 
 	} else {
-		_, err = bot.RemoveWebhook()
+		_, err = bot.Request(tgbotapi.RemoveWebhookConfig{})
 
 		if err != nil {
 			log.Fatal().
@@ -86,7 +86,7 @@ func main() {
 				Msg("Failed to remove a webhook")
 		}
 
-		_, err = bot.SetWebhook(tgbotapi.NewWebhook(os.Getenv("MADNESS_URL")))
+		_, err = bot.Request(tgbotapi.NewWebhook(os.Getenv("MADNESS_URL")))
 		if err != nil {
 			log.Fatal().
 				Err(err).

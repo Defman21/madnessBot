@@ -10,7 +10,7 @@ import (
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
-	"gopkg.in/telegram-bot-api.v4"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Command struct{}

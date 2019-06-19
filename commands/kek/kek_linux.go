@@ -3,8 +3,8 @@ package commands
 import (
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"gopkg.in/gographics/imagick.v3/imagick"
-	"gopkg.in/telegram-bot-api.v4"
 	"io"
 	"net/http"
 	"os"

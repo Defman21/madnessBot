@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/Defman21/madnessBot/commands"
-	"gopkg.in/telegram-bot-api.v4"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Command struct{}

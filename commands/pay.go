@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"gopkg.in/telegram-bot-api.v4"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var payers, notified map[int]bool

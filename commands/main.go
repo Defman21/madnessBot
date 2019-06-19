@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/metrics"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/marpaia/graphite-golang"
-	tgbotapi "gopkg.in/telegram-bot-api.v4"
 	"time"
 )
 

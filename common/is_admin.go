@@ -1,13 +1,13 @@
 package common
 
 import (
-	"gopkg.in/telegram-bot-api.v4"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 // IsAdmin 4Head
 func IsAdmin(user *tgbotapi.User) bool {
 	var admins = map[int]bool{
-		71524437: true,
+		71524437:  true,
 		105513756: true,
 	}
 	if _, exists := admins[user.ID]; exists {

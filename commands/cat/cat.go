@@ -3,7 +3,8 @@ package commands
 import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
-	"gopkg.in/telegram-bot-api.v4"
+	"github.com/Defman21/madnessBot/common"
+	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"strconv"
 	"time"
 )
