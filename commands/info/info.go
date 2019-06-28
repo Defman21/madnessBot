@@ -31,6 +31,18 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	channel = strings.ToLower(channel)
 
+	placeholder := tgbotapi.NewPhotoShare(
+		update.Message.Chat.ID,
+		"https://static.thenounproject.com/png/101791-200.png",
+	)
+	placeholder.Caption = "ищу стримера..."
+	placeholderMsg, err := api.Send(placeholder)
+
+	if err != nil {
+		common.Log.Error().Err(err).Msg("Failed to send a placeholder message")
+		return
+	}
+
 	req := goreq.Request{
 		Uri: "https://api.twitch.tv/helix/streams",
 		QueryString: struct {
@@ -50,59 +62,79 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		Data []struct {
 			Title   string `json:"title"`
 			Viewers int64  `json:"viewer_count"`
-			Game    string `json:"game_id"`
+			Game    int64  `json:"game_id"`
 		} `json:"data"`
 	}
 
 	var data TwitchResponse
 	res.Body.FromJsonTo(&data)
 
+	editmsg := tgbotapi.EditMessageMediaConfig{
+		BaseEdit: tgbotapi.BaseEdit{
+			ChatID:    placeholderMsg.Chat.ID,
+			MessageID: placeholderMsg.MessageID,
+		},
+	}
+
 	if len(data.Data) != 0 {
+		type game struct {
+			Name string `json:"name"`
+		}
+
 		type gameResponse struct {
-			Data []struct {
-				Name string `json:"name"`
-			} `json:"data"`
-		}
-
-		req = goreq.Request{
-			Uri: "https://api.twitch.tv/helix/games",
-			QueryString: struct {
-				ID string
-			}{
-				ID: data.Data[0].Game,
-			},
-		}
-		oauth.AddHeadersUsing("twitch", &req)
-		res, err = req.Do()
-
-		if err != nil {
-			common.Log.Error().Err(err).Msg("Request failed")
-			return
+			Data []game `json:"data"`
 		}
 
 		var gdata gameResponse
-		res.Body.FromJsonTo(&gdata)
-		photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
+
+		if data.Data[0].Game != 0 {
+			req = goreq.Request{
+				Uri: "https://api.twitch.tv/helix/games",
+				QueryString: struct {
+					ID int64
+				}{
+					ID: data.Data[0].Game,
+				},
+			}
+			oauth.AddHeadersUsing("twitch", &req)
+			res, err = req.Do()
+
+			if err != nil {
+				common.Log.Error().Err(err).Msg("Request failed")
+				return
+			}
+
+			res.Body.FromJsonTo(&gdata)
+		} else {
+			gdata = gameResponse{Data: []game{{Name: "не указана"}}}
+		}
+
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
 			channel + "-1280x720.jpg?" + timestamp
-		photo.FileID = url
-		photo.UseExisting = true
-		tpl := `%s сейчас онлайн!
+		msg := fmt.Sprintf(`%s сейчас онлайн!
 %s
 Сморков: %d
 Игра: %s
-https://twitch.tv/%s`
-		photo.Caption = fmt.Sprintf(tpl, channel, data.Data[0].Title,
-			data.Data[0].Viewers, gdata.Data[0].Name, channel)
-		api.Send(photo)
+https://twitch.tv/%s`, channel, data.Data[0].Title, data.Data[0].Viewers, gdata.Data[0].Name, channel)
+
+		editmsg.Media = tgbotapi.BaseInputMedia{
+			Type:    "photo",
+			Media:   url,
+			Caption: msg,
+		}
 	} else {
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID,
-			"Етот пидор ниче не стримит")
-		api.Send(msg)
-		sticker := tgbotapi.NewStickerShare(update.Message.Chat.ID,
-			"CAADAgADIwAD43TSFjrD9SW8bXfjAg")
-		api.Send(sticker)
+		editmsg.Media = tgbotapi.BaseInputMedia{
+			Type:    "photo",
+			Media:   "https://i.redd.it/07onk217ojfz.png",
+			Caption: fmt.Sprintf("%s ниче не стримит", channel),
+		}
+	}
+
+	_, err = api.Send(editmsg)
+
+	if err != nil {
+		common.Log.Error().Err(err).Msg("Failed to edit a message")
 	}
 }
 
