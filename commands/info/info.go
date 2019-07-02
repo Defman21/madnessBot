@@ -62,7 +62,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		Data []struct {
 			Title   string `json:"title"`
 			Viewers int64  `json:"viewer_count"`
-			Game    int64  `json:"game_id"`
+			Game    string `json:"game_id"`
 		} `json:"data"`
 	}
 
@@ -87,11 +87,11 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 		var gdata gameResponse
 
-		if data.Data[0].Game != 0 {
+		if data.Data[0].Game != "0" {
 			req = goreq.Request{
 				Uri: "https://api.twitch.tv/helix/games",
 				QueryString: struct {
-					ID int64
+					ID string
 				}{
 					ID: data.Data[0].Game,
 				},
