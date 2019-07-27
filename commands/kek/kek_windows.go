@@ -11,7 +11,7 @@ func (c *Command) UseLua() bool {
 	return false
 }
 
-func (c *Command) RunGo(api *tgbotapi.BotAPI, update *tgbotapi.Update) {}
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {}
 
 func init() {
 	commands.Register("kek", &Command{})
