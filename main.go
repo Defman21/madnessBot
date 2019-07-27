@@ -3,12 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
-	"os"
-	"regexp"
-	"strconv"
-	"time"
-
 	"github.com/Defman21/madnessBot/commands"
 	_ "github.com/Defman21/madnessBot/commands/cat"
 	_ "github.com/Defman21/madnessBot/commands/donate"
@@ -26,11 +20,16 @@ import (
 	_ "github.com/Defman21/madnessBot/commands/unsubscribe"
 	_ "github.com/Defman21/madnessBot/commands/up"
 	_ "github.com/Defman21/madnessBot/commands/version"
+	"github.com/Defman21/madnessBot/common/oauth"
+	"net/http"
+	"os"
+	"regexp"
+	"strconv"
+	"time"
 
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/metrics"
 
-	"github.com/Defman21/madnessBot/common/oauth"
 	_ "github.com/Defman21/madnessBot/common/oauth/twitch"
 
 	"github.com/franela/goreq"
