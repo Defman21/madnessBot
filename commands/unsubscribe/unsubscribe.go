@@ -20,6 +20,11 @@ func (c *Command) UseLua() bool {
 }
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	if !common.IsAdmin(update.Message.From) {
+		api.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "TriHard LULW"))
+		return
+	}
+
 	channel := update.Message.CommandArguments()
 
 	if channel == "" {
