@@ -19,6 +19,7 @@ import (
 	_ "github.com/Defman21/madnessBot/commands/subscribe"
 	_ "github.com/Defman21/madnessBot/commands/subscribers"
 	_ "github.com/Defman21/madnessBot/commands/swap"
+	_ "github.com/Defman21/madnessBot/commands/unnotify_me"
 	_ "github.com/Defman21/madnessBot/commands/unsubscribe"
 	_ "github.com/Defman21/madnessBot/commands/up"
 	_ "github.com/Defman21/madnessBot/commands/version"

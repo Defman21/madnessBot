@@ -76,6 +76,17 @@ func (n *Notifier) Add(userID string, userName string) {
 	n.saveGob(nil)
 }
 
+func (n *Notifier) Remove(userID string, userName string) {
+	var newList []string
+	for _, user := range n.userMap[userID] {
+		if user != userName {
+			newList = append(newList, user)
+		}
+	}
+	n.userMap[userID] = newList
+	n.saveGob(nil)
+}
+
 func (n Notifier) GenerateNotifyString(userID string) string {
 	return strings.Join(n.userMap[userID], ", ")
 }
