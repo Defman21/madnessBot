@@ -27,37 +27,8 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		api.Send(msg)
 		return
 	}
-	req := goreq.Request{
-		Uri: "https://api.twitch.tv/helix/users",
-		QueryString: struct {
-			Login string
-		}{
-			Login: channel,
-		},
-	}
-	oauth.AddHeadersUsing("twitch", &req)
-	res, err := req.Do()
-
-	if err != nil {
-		common.Log.Error().Err(err).Msg("Request failed")
-		return
-	} else {
-		type User struct {
-			Data []struct {
-				ID string `json:"id"`
-			} `json:"data"`
-		}
-
-		var user User
-
-		res.Body.FromJsonTo(&user)
-
-		if len(user.Data) == 0 {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Такого пидора нет")
-			api.Send(msg)
-			return
-		}
-
+	userID, found := common.GetTwitchUserIDByLogin(channel)
+	if found {
 		req := goreq.Request{
 			Method: "POST",
 			Uri:    "https://api.twitch.tv/helix/webhooks/hub",
@@ -70,8 +41,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				HubCallback:     fmt.Sprintf("%s%s", os.Getenv("TWITCH_URL"), channel),
 				HubMode:         "subscribe",
 				HubLeaseSeconds: 864000,
-				HubTopic: fmt.Sprintf("https://api.twitch.tv/helix/streams?user_id=%s",
-					user.Data[0].ID),
+				HubTopic:        fmt.Sprintf("https://api.twitch.tv/helix/streams?user_id=%s", userID),
 			},
 		}
 		oauth.AddHeadersUsing("twitch", &req)
@@ -85,7 +55,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 		json.Unmarshal(bytes, &users)
 
-		users[channel] = user.Data[0].ID
+		users[channel] = userID
 		bytes, err = json.Marshal(users)
 
 		if err != nil {
@@ -96,11 +66,13 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				common.Log.Error().Err(err).Msg("Failed to write users.json")
 				return
 			}
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID,
+			common.SendMessage(
+				api,
+				update.Message.Chat.ID,
 				fmt.Sprintf("Бот теперь аки маньяк будет преследовать %s "+
-					"до конца своих дней.",
-					channel))
-			api.Send(msg)
+					"до конца своих дней.", channel),
+				nil,
+			)
 		}
 	}
 }

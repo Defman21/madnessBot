@@ -28,9 +28,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
 
 	if channel == "" {
-		msg := tgbotapi.NewVoiceShare(update.Message.Chat.ID,
-			"AwADAgADwgADC6ZpS13yfdzm_pTzAg")
-		api.Send(msg)
+		common.SendInvalidArgumentsMessage(api, update.Message.Chat.ID)
 		return
 	}
 
