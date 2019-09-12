@@ -9,6 +9,7 @@ import (
 	"github.com/Defman21/madnessBot/notifier"
 	"github.com/franela/goreq"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/hashicorp/golang-lru"
 	"github.com/marpaia/graphite-golang"
 	"io/ioutil"
 	"net/http"
@@ -17,10 +18,17 @@ import (
 	"time"
 )
 
-var notificationIds map[string]bool
+var notificationIds *lru.Cache
 
 func init() {
-	notificationIds = make(map[string]bool)
+	var cacheSize int
+	cacheSizeEnv := os.Getenv("NOTIFICATIONS_LRU_CACHE")
+	if cacheSizeEnv == "" {
+		cacheSize = 10
+	} else {
+		cacheSize, _ = strconv.Atoi(cacheSizeEnv)
+	}
+	notificationIds, _ = lru.New(cacheSize)
 }
 
 func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
@@ -58,11 +66,11 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 				bot.Send(msg)
 			} else {
 
-				if _, dup := notificationIds[notification.Data[0].NotificationID]; dup {
+				if _, exists := notificationIds.Get(notification.Data[0].NotificationID); exists {
 					common.Log.Info().Msg("Duplicate notification!")
 					return
 				}
-				notificationIds[notification.Data[0].NotificationID] = true
+				notificationIds.Add(notification.Data[0].NotificationID, true)
 
 				type game struct {
 					Name string
