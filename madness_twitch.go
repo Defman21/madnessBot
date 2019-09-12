@@ -6,6 +6,7 @@ import (
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/metrics"
 	"github.com/Defman21/madnessBot/common/oauth"
+	"github.com/Defman21/madnessBot/notifier"
 	"github.com/franela/goreq"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/marpaia/graphite-golang"
@@ -102,9 +103,11 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 Сморков: %d
 Игра: %s
 https://twitch.tv/%s
+%s
 `
+				notifyUsers := notifier.Get().GenerateNotifyString(notification.Data[0].ID)
 				message = fmt.Sprintf(tpl, name, notification.Data[0].Title,
-					notification.Data[0].Viewers, data.Data[0].Name, name)
+					notification.Data[0].Viewers, data.Data[0].Name, name, notifyUsers)
 				photo := tgbotapi.NewPhotoUpload(chatID, nil)
 				timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 				url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
