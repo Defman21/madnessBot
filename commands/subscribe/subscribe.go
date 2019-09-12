@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/helpers"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -27,7 +28,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		api.Send(msg)
 		return
 	}
-	userID, found := common.GetTwitchUserIDByLogin(channel)
+	userID, found := helpers.GetTwitchUserIDByLogin(channel)
 	if found {
 		req := goreq.Request{
 			Method: "POST",
@@ -66,7 +67,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				common.Log.Error().Err(err).Msg("Failed to write users.json")
 				return
 			}
-			common.SendMessage(
+			helpers.SendMessage(
 				api,
 				update.Message.Chat.ID,
 				fmt.Sprintf("Бот теперь аки маньяк будет преследовать %s "+

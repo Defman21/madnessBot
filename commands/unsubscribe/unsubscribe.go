@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/helpers"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -28,7 +29,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
 
 	if channel == "" {
-		common.SendInvalidArgumentsMessage(api, update.Message.Chat.ID)
+		helpers.SendInvalidArgumentsMessage(api, update.Message.Chat.ID)
 		return
 	}
 

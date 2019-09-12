@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
+	"github.com/Defman21/madnessBot/common/helpers"
 	"strconv"
 	"strings"
 	"time"
@@ -23,7 +24,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
 
 	if channel == "" {
-		common.SendInvalidArgumentsMessage(api, update.Message.Chat.ID)
+		helpers.SendInvalidArgumentsMessage(api, update.Message.Chat.ID)
 		return
 	}
 

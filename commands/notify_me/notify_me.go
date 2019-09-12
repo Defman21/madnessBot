@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/helpers"
 	"github.com/Defman21/madnessBot/notifier"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -17,15 +17,15 @@ func (c *Command) UseLua() bool {
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	login := update.Message.CommandArguments()
 	userName := update.Message.From.UserName
-	userID, found := common.GetTwitchUserIDByLogin(login)
+	userID, found := helpers.GetTwitchUserIDByLogin(login)
 	if !found {
-		common.SendMessage(api, update.Message.Chat.ID, "стример не найден", nil)
+		helpers.SendMessage(api, update.Message.Chat.ID, "стример не найден", nil)
 		return
 	}
 
 	notifier.Get().Add(userID, fmt.Sprintf("@%s", userName))
 
-	common.SendMessage(
+	helpers.SendMessage(
 		api,
 		update.Message.Chat.ID,
 		fmt.Sprintf("подписал тебя на оповещения от %s", login),

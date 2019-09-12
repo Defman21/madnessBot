@@ -1,6 +1,7 @@
-package common
+package helpers
 
 import (
+	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/franela/goreq"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -20,7 +21,7 @@ func GetTwitchUserIDByLogin(login string) (string, bool) {
 	res, err := req.Do()
 
 	if err != nil {
-		Log.Error().Err(err).Msg("Request failed")
+		common.Log.Error().Err(err).Msg("Request failed")
 		return "", false
 	}
 
@@ -34,7 +35,7 @@ func GetTwitchUserIDByLogin(login string) (string, bool) {
 
 	err = res.Body.FromJsonTo(&user)
 	if err != nil {
-		Log.Error().Err(err).Msg("Failed to unmarshal twitch response")
+		common.Log.Error().Err(err).Msg("Failed to unmarshal twitch response")
 		return "", false
 	}
 
@@ -47,7 +48,7 @@ func GetTwitchUserIDByLogin(login string) (string, bool) {
 func sendMessage(api *tgbotapi.BotAPI, message tgbotapi.Chattable) {
 	_, err := api.Send(message)
 	if err != nil {
-		Log.Error().Err(err).Interface("msg", message).Msg("Failed to send a message")
+		common.Log.Error().Err(err).Interface("msg", message).Msg("Failed to send a message")
 	}
 }
 
