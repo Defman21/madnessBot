@@ -19,7 +19,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	userName := update.Message.From.UserName
 	userID, found := helpers.GetTwitchUserIDByLogin(login)
 	if !found {
-		helpers.SendMessage(api, update.Message.Chat.ID, "стример не найден", nil)
+		helpers.SendMessage(api, update, "стример не найден", true)
 		return
 	}
 
@@ -27,9 +27,9 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	helpers.SendMessage(
 		api,
-		update.Message.Chat.ID,
+		update,
 		fmt.Sprintf("подписал тебя на оповещения от %s", login),
-		&update.Message.MessageID,
+		true,
 	)
 }
 

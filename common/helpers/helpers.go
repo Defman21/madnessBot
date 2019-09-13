@@ -53,10 +53,10 @@ func sendMessage(api *tgbotapi.BotAPI, message tgbotapi.Chattable) {
 }
 
 //SendMessage send a simple text message
-func SendMessage(api *tgbotapi.BotAPI, chatID int64, text string, replyTo *int) {
-	msg := tgbotapi.NewMessage(chatID, text)
-	if replyTo != nil {
-		msg.ReplyToMessageID = *replyTo
+func SendMessage(api *tgbotapi.BotAPI, update *tgbotapi.Update, text string, isReply bool) {
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
+	if isReply {
+		msg.ReplyToMessageID = update.Message.MessageID
 	}
 	sendMessage(api, msg)
 }

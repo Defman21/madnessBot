@@ -69,10 +69,10 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			}
 			helpers.SendMessage(
 				api,
-				update.Message.Chat.ID,
+				update,
 				fmt.Sprintf("Бот теперь аки маньяк будет преследовать %s "+
 					"до конца своих дней.", channel),
-				nil,
+				true,
 			)
 		}
 	}
