@@ -16,17 +16,26 @@ func (c *Command) UseLua() bool {
 	return false
 }
 
-func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+func GetList() (users Users) {
 	bytes, err := ioutil.ReadFile("./data/users.json")
 	if err != nil {
 		common.Log.Error().Err(err).Msg("Failed to read users.json")
+		return nil
+	}
+
+	json.Unmarshal(bytes, &users)
+
+	return users
+}
+
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	users := GetList()
+	if users == nil {
+		common.Log.Warn().Msg("Empty user list")
 		return
 	}
 
-	var users Users
 	var subscribers string
-
-	json.Unmarshal(bytes, &users)
 
 	for username, _ := range users {
 		subscribers += fmt.Sprintf("%s\n", username)
