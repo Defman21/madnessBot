@@ -63,8 +63,10 @@ func (c *Command) Run(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	url := fmt.Sprintf("https://vk.com/wall%d_%d", data.Response.Items[0].OwnerID, data.Response.Items[0].ID)
+	loc, _ := time.LoadLocation("Europe/Moscow")
+	postTime := time.Unix(data.Response.Items[0].Date, 0).In(loc).Format("02.01 15:04")
 
-	text := fmt.Sprintf("%s\n%s\n%s", time.Unix(data.Response.Items[0].Date, 0).Format("02.01 15:04"), data.Response.Items[0].Text, url)
+	text := fmt.Sprintf("%s\n%s\n%s", postTime, data.Response.Items[0].Text, url)
 
 	for _, attachment := range data.Response.Items[0].Attachments {
 		if attachment.Type != "photo" {
