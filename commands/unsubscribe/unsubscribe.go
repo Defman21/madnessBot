@@ -7,7 +7,7 @@ import (
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/helpers"
 	"github.com/Defman21/madnessBot/common/oauth"
-	"github.com/franela/goreq"
+	"github.com/Defman21/madnessBot/common/types"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io/ioutil"
 	"os"
@@ -22,14 +22,14 @@ func (c *Command) UseLua() bool {
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if !common.IsAdmin(update.Message.From) {
-		api.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "TriHard LULW"))
+		helpers.SendMessage(api, update, "TriHard LULW", true)
 		return
 	}
 
 	channel := update.Message.CommandArguments()
 
 	if channel == "" {
-		helpers.SendInvalidArgumentsMessage(api, update.Message.Chat.ID)
+		helpers.SendInvalidArgumentsMessage(api, update)
 		return
 	}
 
@@ -45,44 +45,38 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	if userID, ok := users[channel]; ok {
 		go func(channel string, userID string) {
-			req := goreq.Request{
-				Method: "POST",
-				Uri:    "https://api.twitch.tv/helix/webhooks/hub",
-				QueryString: struct {
-					HubCallback     string `url:"hub.callback"`
-					HubMode         string `url:"hub.mode"`
-					HubLeaseSeconds int    `url:"hub.lease_seconds"`
-					HubTopic        string `url:"hub.topic"`
-				}{
-					HubCallback:     fmt.Sprintf("%s%s", os.Getenv("TWITCH_URL"), channel),
-					HubMode:         "unsubscribe",
-					HubLeaseSeconds: 864000,
-					HubTopic:        fmt.Sprintf("https://api.twitch.tv/helix/streams?user_id=%s", userID),
+			req := helpers.Request.Post("https://api.twitch.tv/helix/webhooks/hub").Query(
+				types.TwitchHub{
+					Callback:     fmt.Sprintf("%s%s", os.Getenv("TWITCH_URL"), channel),
+					Mode:         "unsubscribe",
+					LeaseSeconds: 864000,
+					Topic:        fmt.Sprintf("https://api.twitch.tv/helix/streams?user_id=%s", userID),
 				},
+			)
+			oauth.AddHeadersUsing("twitch", req)
+			_, _, errs := req.End()
+
+			if errs != nil {
+				common.Log.Error().Errs("errs", errs).Msg("Failed to send a request")
+				return
 			}
-			oauth.AddHeadersUsing("twitch", &req)
-			_, err := req.Do()
 
-			if err != nil {
-				common.Log.Error().Err(err).Msg("Request failed")
+			common.Log.Info().
+				Str("user", channel).Msg("Unsubscribed")
+
+			delete(users, channel)
+			jsonStr, _ := json.Marshal(users)
+			err = ioutil.WriteFile("./data/users.json", []byte(jsonStr), 0644)
+			if err == nil {
+				common.Log.Info().Msg("Updated users.json")
+				helpers.SendMessage(
+					api,
+					update,
+					fmt.Sprintf("Unsubscribed from %s", channel),
+					true,
+				)
 			} else {
-				common.Log.Info().
-					Str("user", channel).Msg("Unsubscribed")
-
-				delete(users, channel)
-				jsonStr, _ := json.Marshal(users)
-				err = ioutil.WriteFile("./data/users.json", []byte(jsonStr), 0644)
-				if err == nil {
-					common.Log.Info().Msg("Updated users.json")
-					api.Send(
-						tgbotapi.NewMessage(
-							update.Message.Chat.ID,
-							fmt.Sprintf("Unsubscribed from %s", channel),
-						),
-					)
-				} else {
-					common.Log.Warn().Err(err).Msg("Couldn't write to users.json")
-				}
+				common.Log.Warn().Err(err).Msg("Couldn't write to users.json")
 			}
 		}(channel, userID)
 	} else {

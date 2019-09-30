@@ -10,7 +10,6 @@ import (
 
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/oauth"
-	"github.com/franela/goreq"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -24,7 +23,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
 
 	if channel == "" {
-		helpers.SendInvalidArgumentsMessage(api, update.Message.Chat.ID)
+		helpers.SendInvalidArgumentsMessage(api, update)
 		return
 	}
 
@@ -42,21 +41,6 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		return
 	}
 
-	req := goreq.Request{
-		Uri: "https://api.twitch.tv/helix/streams",
-		QueryString: struct {
-			UserLogin string `url:"user_login"`
-		}{
-			UserLogin: channel,
-		},
-	}
-	oauth.AddHeadersUsing("twitch", &req)
-	res, err := req.Do()
-
-	if err != nil {
-		common.Log.Error().Err(err).Msg("Request failed")
-		return
-	}
 	type TwitchResponse struct {
 		Data []struct {
 			Title   string `json:"title"`
@@ -66,7 +50,20 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	var data TwitchResponse
-	res.Body.FromJsonTo(&data)
+	req := helpers.Request.Get("https://api.twitch.tv/helix/streams").Query(
+		struct {
+			UserLogin string `json:"user_login"`
+		}{
+			UserLogin: channel,
+		},
+	)
+	oauth.AddHeadersUsing("twitch", req)
+	_, _, errs := req.EndStruct(&data)
+
+	if errs != nil {
+		common.Log.Error().Errs("errs", errs).Msg("Request failed")
+		return
+	}
 
 	editmsg := tgbotapi.EditMessageMediaConfig{
 		BaseEdit: tgbotapi.BaseEdit{
@@ -87,23 +84,20 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		var gdata gameResponse
 
 		if data.Data[0].Game != "0" {
-			req = goreq.Request{
-				Uri: "https://api.twitch.tv/helix/games",
-				QueryString: struct {
+			req = helpers.Request.Get("https://api.twitch.tv/helix/games").Query(
+				struct {
 					ID string
 				}{
 					ID: data.Data[0].Game,
 				},
-			}
-			oauth.AddHeadersUsing("twitch", &req)
-			res, err = req.Do()
+			)
+			oauth.AddHeadersUsing("twitch", req)
+			_, _, errs = req.EndStruct(&gdata)
 
-			if err != nil {
-				common.Log.Error().Err(err).Msg("Request failed")
+			if errs != nil {
+				common.Log.Error().Errs("errs", errs).Msg("Request failed")
 				return
 			}
-
-			res.Body.FromJsonTo(&gdata)
 		} else {
 			gdata = gameResponse{Data: []game{{Name: "не указана"}}}
 		}

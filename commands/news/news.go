@@ -3,11 +3,11 @@ package commands
 import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
+	"github.com/Defman21/madnessBot/common/helpers"
 	"os"
 	"time"
 
 	"github.com/Defman21/madnessBot/common"
-	"github.com/franela/goreq"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -17,26 +17,7 @@ func (c *Command) UseLua() bool {
 	return false
 }
 
-func (c *Command) Run(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
-	res, err := goreq.Request{
-		Uri: "https://api.vk.com/method/wall.get",
-		QueryString: struct {
-			OwnerID     int `url:"owner_id"`
-			Count       int
-			Version     float64 `url:"v"`
-			AccessToken string  `url:"access_token"`
-		}{
-			OwnerID:     -30138776,
-			Count:       2,
-			Version:     5.71,
-			AccessToken: os.Getenv("VK_TOKEN"),
-		},
-	}.Do()
-
-	if err != nil {
-		common.Log.Error().Err(err).Msg("Request failed")
-		return
-	}
+func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	type VkResponse struct {
 		Response struct {
 			Items []struct {
@@ -56,7 +37,25 @@ func (c *Command) Run(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	var data VkResponse
-	res.Body.FromJsonTo(&data)
+
+	_, _, errs := helpers.Request.Get("https://api.vk.com/method/wall.get").Query(
+		struct {
+			OwnerID     int `json:"owner_id"`
+			Count       int
+			Version     float64 `json:"v"`
+			AccessToken string  `json:"access_token"`
+		}{
+			OwnerID:     -30138776,
+			Count:       2,
+			Version:     5.71,
+			AccessToken: os.Getenv("VK_TOKEN"),
+		},
+	).EndStruct(&data)
+
+	if errs != nil {
+		common.Log.Error().Errs("errs", errs).Msg("Request failed")
+		return
+	}
 
 	if data.Response.Items[0].Pinned == 1 {
 		data.Response.Items[0] = data.Response.Items[1]
@@ -72,17 +71,12 @@ func (c *Command) Run(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		if attachment.Type != "photo" {
 			continue
 		} else {
-			photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
-			photo.FileID = attachment.Photo.URL
-			photo.UseExisting = true
-			photo.Caption = text
-			bot.Send(photo)
+			helpers.SendPhoto(api, update, attachment.Photo.URL, text, false)
 			return
 		}
 	}
 
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
-	bot.Send(msg)
+	helpers.SendMessage(api, update, text, false)
 }
 
 func init() {

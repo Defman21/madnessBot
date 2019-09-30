@@ -2,14 +2,14 @@ package oauth
 
 import (
 	"github.com/Defman21/madnessBot/common"
-	"github.com/franela/goreq"
+	"github.com/parnurzeal/gorequest"
 )
 
 type Interface interface {
 	Init()
 	Refresh()
 	ExpiresSoon() bool
-	AddHeaders(request *goreq.Request)
+	AddHeaders(agent *gorequest.SuperAgent)
 }
 
 var providers = make(map[string]Interface)
@@ -27,9 +27,9 @@ func Get(name string) Interface {
 	}
 }
 
-func AddHeadersUsing(name string, request *goreq.Request) {
+func AddHeadersUsing(name string, agent *gorequest.SuperAgent) {
 	if instance := Get(name); instance != nil {
-		instance.AddHeaders(request)
+		instance.AddHeaders(agent)
 	}
 }
 

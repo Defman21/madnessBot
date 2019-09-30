@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/helpers"
 	"github.com/Defman21/madnessBot/common/metrics"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/Defman21/madnessBot/notifier"
-	"github.com/franela/goreq"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hashicorp/golang-lru"
 	"github.com/marpaia/graphite-golang"
@@ -31,7 +31,7 @@ func init() {
 	notificationIds, _ = lru.New(cacheSize)
 }
 
-func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
+func madnessTwitch(api *tgbotapi.BotAPI) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		name := r.URL.Path[len(os.Getenv("TWITCH_HOOK")):]
 		type Notification struct {
@@ -62,8 +62,7 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 			if len(notification.Data) == 0 {
 				message = fmt.Sprintf("%s закончил стрим, потому что нахуй никому "+
 					"не сдался.\nhttps://twitch.tv/%s", name, name)
-				msg := tgbotapi.NewMessage(chatID, message)
-				bot.Send(msg)
+				helpers.SendMessageChatID(api, chatID, message)
 			} else {
 
 				if _, exists := notificationIds.Get(notification.Data[0].NotificationID); exists {
@@ -83,23 +82,20 @@ func madnessTwitch(bot *tgbotapi.BotAPI) http.HandlerFunc {
 				var data gameResponse
 
 				if notification.Data[0].Game != "0" {
-					req := goreq.Request{
-						Uri: "https://api.twitch.tv/helix/games",
-						QueryString: struct {
+					req := helpers.Request.Get("https://api.twitch.tv/helix/games").Query(
+						struct {
 							ID string
 						}{
 							ID: notification.Data[0].Game,
 						},
-					}
-					oauth.AddHeadersUsing("twitch", &req)
-					res, err := req.Do()
+					)
+					oauth.AddHeadersUsing("twitch", req)
+					_, _, errs := req.EndStruct(&data)
 
-					if err != nil {
-						common.Log.Error().Err(err).Msg("Request failed")
+					if errs != nil {
+						common.Log.Error().Errs("errs", errs).Msg("Request failed")
 						return
 					}
-
-					res.Body.FromJsonTo(&data)
 				} else {
 					data = gameResponse{
 						Data: []*game{{Name: "не указана"}},
@@ -116,14 +112,10 @@ https://twitch.tv/%s
 				notifyUsers := notifier.Get().GenerateNotifyString(notification.Data[0].ID)
 				message = fmt.Sprintf(tpl, name, notification.Data[0].Title,
 					notification.Data[0].Viewers, data.Data[0].Name, name, notifyUsers)
-				photo := tgbotapi.NewPhotoUpload(chatID, nil)
 				timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 				url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
 					name + "-1280x720.jpg?" + timestamp
-				photo.FileID = url
-				photo.UseExisting = true
-				photo.Caption = message
-				bot.Send(photo)
+				helpers.SendPhotoChatID(api, chatID, url, message)
 
 				metrics.Graphite().Send(graphite.NewMetric(
 					fmt.Sprintf("stats.stream_push.%s", name), "1",

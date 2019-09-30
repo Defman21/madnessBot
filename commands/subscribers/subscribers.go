@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/helpers"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io/ioutil"
 )
@@ -41,10 +42,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		subscribers += fmt.Sprintf("%s\n", username)
 	}
 
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, subscribers)
-	msg.ReplyToMessageID = update.Message.MessageID
-
-	api.Send(msg)
+	helpers.SendMessage(api, update, subscribers, true)
 }
 
 func init() {

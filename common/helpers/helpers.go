@@ -3,28 +3,12 @@ package helpers
 import (
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/oauth"
-	"github.com/franela/goreq"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/parnurzeal/gorequest"
 )
 
 //GetTwitchUserIDByLogin get userID by Twitch login
 func GetTwitchUserIDByLogin(login string) (string, bool) {
-	req := goreq.Request{
-		Uri: "https://api.twitch.tv/helix/users",
-		QueryString: struct {
-			Login string
-		}{
-			Login: login,
-		},
-	}
-	oauth.AddHeadersUsing("twitch", &req)
-	res, err := req.Do()
-
-	if err != nil {
-		common.Log.Error().Err(err).Msg("Request failed")
-		return "", false
-	}
-
 	type User struct {
 		Data []struct {
 			ID string `json:"id"`
@@ -33,9 +17,19 @@ func GetTwitchUserIDByLogin(login string) (string, bool) {
 
 	var user User
 
-	err = res.Body.FromJsonTo(&user)
-	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to unmarshal twitch response")
+	req := Request.Get("https://api.twitch.tv/helix/users").Query(
+
+		struct {
+			Login string
+		}{
+			Login: login,
+		},
+	)
+	oauth.AddHeadersUsing("twitch", req)
+	_, _, errs := req.EndStruct(&user)
+
+	if errs != nil {
+		common.Log.Error().Errs("errs", errs).Msg("Request failed")
 		return "", false
 	}
 
@@ -61,10 +55,39 @@ func SendMessage(api *tgbotapi.BotAPI, update *tgbotapi.Update, text string, isR
 	sendMessage(api, msg)
 }
 
+//SendMessageChatID sends a message by chat id
+func SendMessageChatID(api *tgbotapi.BotAPI, chatID int64, text string) {
+	msg := tgbotapi.NewMessage(chatID, text)
+	sendMessage(api, msg)
+}
+
+//SendPhoto sends a photo with caption
+func SendPhoto(api *tgbotapi.BotAPI, update *tgbotapi.Update, photoURL string, caption string, isReply bool) {
+	photo := tgbotapi.NewPhotoUpload(update.Message.Chat.ID, nil)
+	photo.FileID = photoURL
+	photo.UseExisting = true
+	photo.Caption = caption
+	if isReply {
+		photo.ReplyToMessageID = update.Message.MessageID
+	}
+	sendMessage(api, photo)
+}
+
+//SendPhotoChatID sends a photo with caption by chat id
+func SendPhotoChatID(api *tgbotapi.BotAPI, chatID int64, photoURL string, caption string) {
+	photo := tgbotapi.NewPhotoUpload(chatID, nil)
+	photo.FileID = photoURL
+	photo.UseExisting = true
+	photo.Caption = caption
+	sendMessage(api, photo)
+}
+
 const dremoAVNDVoiceID = "AwADAgADwgADC6ZpS13yfdzm_pTzAg"
 
 //SendInvalidArgumentsMessage send a voice message by DremoAVND
-func SendInvalidArgumentsMessage(api *tgbotapi.BotAPI, chatID int64) {
-	msg := tgbotapi.NewVoiceShare(chatID, dremoAVNDVoiceID)
+func SendInvalidArgumentsMessage(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	msg := tgbotapi.NewVoiceShare(update.Message.Chat.ID, dremoAVNDVoiceID)
 	sendMessage(api, msg)
 }
+
+var Request = gorequest.New()

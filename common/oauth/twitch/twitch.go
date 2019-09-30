@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/oauth"
-	"github.com/franela/goreq"
+	"github.com/parnurzeal/gorequest"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -129,9 +129,9 @@ func (t *twitchOauth) UpdateExpire() {
 	t.ExpiresAt = time.Now().Local().Add(time.Second * time.Duration(t.ExpiresIn))
 }
 
-func (t *twitchOauth) AddHeaders(request *goreq.Request) {
-	request.AddHeader("Client-ID", os.Getenv("TWITCH_CLIENT_ID"))
-	request.AddHeader("Authorization", fmt.Sprintf("Bearer %s", t.AccessToken))
+func (t *twitchOauth) AddHeaders(agent *gorequest.SuperAgent) {
+	agent.Set("Client-ID", os.Getenv("TWITCH_CLIENT_ID"))
+	agent.Set("Authorization", fmt.Sprintf("Bearer %s", t.AccessToken))
 }
 
 func (t *twitchOauth) ExpiresSoon() bool {

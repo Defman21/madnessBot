@@ -3,10 +3,10 @@ package commands
 import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
+	"github.com/Defman21/madnessBot/common/helpers"
 	"time"
 
 	"github.com/Defman21/madnessBot/common"
-	"github.com/franela/goreq"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -23,15 +23,6 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		room = "melharucos"
 	}
 
-	res, err := goreq.Request{
-		Uri:     fmt.Sprintf("https://api.dubtrack.fm/room/%s", room),
-		Timeout: 3 * time.Second,
-	}.Do()
-
-	if err != nil {
-		common.Log.Error().Err(err).Msg("Request failed")
-		return
-	}
 	type Response struct {
 		Data struct {
 			CurrentSong struct {
@@ -43,12 +34,22 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	var response Response
-	res.Body.FromJsonTo(&response)
 
-	if response.Data.CurrentSong.ID == "" {
-		api.Send(tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("В комнате %s тихо", room)))
+	_, _, errs := helpers.Request.
+		Get(fmt.Sprintf("https://api.dubtrack.fm/room/%s", room)).
+		Timeout(3 * time.Second).
+		EndStruct(&response)
+
+	if errs != nil {
+		common.Log.Error().Errs("errs", errs).Msg("Request failed")
 		return
 	}
+
+	if response.Data.CurrentSong.ID == "" {
+		helpers.SendMessage(api, update, fmt.Sprintf("В комнате %s тихо", room), false)
+		return
+	}
+
 	var url string
 	if response.Data.CurrentSong.Type == "youtube" {
 		url = fmt.Sprintf("https://youtube.com/watch?v=%s", response.Data.CurrentSong.ID)
@@ -57,7 +58,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	msg := fmt.Sprintf("В комнате %s играет %s\n%s", room, response.Data.CurrentSong.Name, url)
-	api.Send(tgbotapi.NewMessage(update.Message.Chat.ID, msg))
+	helpers.SendMessage(api, update, msg, false)
 }
 
 func init() {

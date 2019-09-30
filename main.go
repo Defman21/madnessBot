@@ -23,6 +23,7 @@ import (
 	_ "github.com/Defman21/madnessBot/commands/unsubscribe"
 	_ "github.com/Defman21/madnessBot/commands/up"
 	_ "github.com/Defman21/madnessBot/commands/version"
+	"github.com/Defman21/madnessBot/common/helpers"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"net/http"
 	"os"
@@ -35,7 +36,6 @@ import (
 
 	_ "github.com/Defman21/madnessBot/common/oauth/twitch"
 
-	"github.com/franela/goreq"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
 )
@@ -149,30 +149,6 @@ func main() {
 					"CAADAgAD9wIAAlwCZQO1cgzUpY4T7wI")
 				bot.Send(msg)
 			} else if lookup := wikiRegex.FindStringSubmatch(update.Message.Text); lookup != nil {
-				req := goreq.Request{
-					Uri:       "https://ru.wikipedia.org/w/api.php",
-					UserAgent: "madnessBot (https://defman.me; me@defman.me) goreq",
-					QueryString: struct {
-						Action        string
-						Titles        string
-						Prop          string
-						Explaintext   bool
-						Exintro       bool
-						Format        string
-						Formatversion int
-						Redirects     int
-					}{
-						Action:        "query",
-						Titles:        lookup[1],
-						Prop:          "extracts",
-						Explaintext:   true,
-						Exintro:       true,
-						Format:        "json",
-						Formatversion: 2,
-						Redirects:     1,
-					},
-				}
-
 				type response struct {
 					Query struct {
 						Pages []struct {
@@ -181,15 +157,36 @@ func main() {
 						} `json:"pages"`
 					} `json:"query"`
 				}
-				res, err := req.Do()
-				if err != nil {
-					log.Warn().Err(err).Msg("Wikipedia lookup")
-					continue
-				}
 				var data response
-				err = res.Body.FromJsonTo(&data)
-				if err != nil {
-					log.Warn().Err(err).Msg("Failed to decode JSON")
+
+				req := helpers.Request.Get("https://ru.wikipedia.org/w/api.php").
+					Set("User-Agent", "madnessBot (https://defman.me; me@defman.me) gorequest").
+					Query(
+						struct {
+							Action        string
+							Titles        string
+							Prop          string
+							Explaintext   bool
+							Exintro       bool
+							Format        string
+							Formatversion int
+							Redirects     int
+						}{
+							Action:        "query",
+							Titles:        lookup[1],
+							Prop:          "extracts",
+							Explaintext:   true,
+							Exintro:       true,
+							Format:        "json",
+							Formatversion: 2,
+							Redirects:     1,
+						},
+					)
+
+				_, _, errs := req.EndStruct(&data)
+				if errs != nil {
+					log.Warn().Errs("errs", errs).Msg("Wikipedia lookup")
+					continue
 				}
 				if len(data.Query.Pages) != 0 && len(data.Query.Pages[0].Extract) != 0 {
 					page := data.Query.Pages[0]
@@ -197,7 +194,7 @@ func main() {
 					msg.ParseMode = tgbotapi.ModeMarkdown
 					bot.Send(msg)
 				} else {
-					bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Википедия не знает forsenKek"))
+					helpers.SendMessage(bot, &update, "Википедия не знает forsenKek", true)
 				}
 			}
 		}
