@@ -3,7 +3,6 @@ module github.com/Defman21/madnessBot
 go 1.12
 
 require (
-	github.com/franela/goreq v0.0.0-20171204163338-bcd34c9993f8
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.0.0-rc1.0.20190601001839-ffe77fb717d3
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.3
