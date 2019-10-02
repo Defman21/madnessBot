@@ -5,6 +5,8 @@ import (
 	"github.com/Defman21/madnessBot/common/helpers"
 	"github.com/Defman21/madnessBot/templates"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Defman21/madnessBot/common"
@@ -24,7 +26,37 @@ type commandTemplate struct {
 	ID      int64
 }
 
+var nameToOwnerID = map[string]int{}
+
+func init() {
+	for _, value := range strings.Split(os.Getenv("NEWS_LIST"), ";") {
+		res := strings.Split(value, ":")
+		name, ownerIDraw := res[0], res[1]
+
+		ownerID, err := strconv.Atoi(ownerIDraw)
+
+		if err != nil {
+			common.Log.Error().Err(err).Msg("Failed to convert owner id from str to int")
+		}
+
+		nameToOwnerID[name] = ownerID
+	}
+}
+
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	name := update.Message.CommandArguments()
+
+	if name == "" {
+		name = "melharucos"
+	}
+
+	ownerID, exists := nameToOwnerID[name]
+
+	if !exists {
+		common.Log.Warn().Interface("map", nameToOwnerID).Msg("Name does not exist in the map")
+		return
+	}
+
 	type VkResponse struct {
 		Response struct {
 			Items []struct {
@@ -52,7 +84,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			Version     float64 `json:"v"`
 			AccessToken string  `json:"access_token"`
 		}{
-			OwnerID:     -30138776,
+			OwnerID:     ownerID,
 			Count:       2,
 			Version:     5.71,
 			AccessToken: os.Getenv("VK_TOKEN"),
