@@ -130,7 +130,7 @@ func (t *twitchOauth) UpdateExpire() {
 }
 
 func (t *twitchOauth) AddHeaders(agent *gorequest.SuperAgent) {
-	agent.Set("Client-ID", os.Getenv("TWITCH_CLIENT_ID"))
+	agent.Set("Client-UserID", os.Getenv("TWITCH_CLIENT_ID"))
 	agent.Set("Authorization", fmt.Sprintf("Bearer %s", t.AccessToken))
 }
 
