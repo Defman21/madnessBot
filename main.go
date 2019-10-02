@@ -25,6 +25,7 @@ import (
 	_ "github.com/Defman21/madnessBot/commands/version"
 	"github.com/Defman21/madnessBot/common/helpers"
 	"github.com/Defman21/madnessBot/common/oauth"
+	_ "github.com/Defman21/madnessBot/templates"
 	"net/http"
 	"os"
 	"regexp"
@@ -111,7 +112,7 @@ func main() {
 		metrics.Init()
 	}
 
-	http.HandleFunc(os.Getenv("TWITCH_HOOK"), madnessTwitch(bot))
+	http.HandleFunc(os.Getenv("TWITCH_HOOK"), twitchNotificationHandler(bot))
 
 	go http.ListenAndServe("0.0.0.0:9000", nil)
 

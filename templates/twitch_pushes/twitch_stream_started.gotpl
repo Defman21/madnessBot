@@ -1,0 +1,5 @@
+[{{.Login}}](https://twitch.tv/{{.Login}}) завел подрубочку!
+{{.Title}}
+Сморков: {{.Viewers}}
+Игра: {{.Game}}
+{{notifier.GenerateNotifyString .UserID}}

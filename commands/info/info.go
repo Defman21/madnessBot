@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/templates"
 	"strconv"
 	"strings"
 	"time"
@@ -17,6 +17,14 @@ type Command struct{}
 
 func (c *Command) UseLua() bool {
 	return false
+}
+
+type commandTemplate struct {
+	Login   string
+	Title   string
+	Viewers int
+	Game    string
+	Online  bool
 }
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
@@ -44,7 +52,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	type TwitchResponse struct {
 		Data []struct {
 			Title   string `json:"title"`
-			Viewers int64  `json:"viewer_count"`
+			Viewers int    `json:"viewer_count"`
 			Game    string `json:"game_id"`
 		} `json:"data"`
 	}
@@ -70,6 +78,11 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			ChatID:    placeholderMsg.Chat.ID,
 			MessageID: placeholderMsg.MessageID,
 		},
+	}
+
+	infoCommand := commandTemplate{
+		Login:  channel,
+		Online: false,
 	}
 
 	if len(data.Data) != 0 {
@@ -103,24 +116,28 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		}
 
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+		infoCommand.Online = true
+		infoCommand.Title = data.Data[0].Title
+		infoCommand.Viewers = data.Data[0].Viewers
+		infoCommand.Game = gdata.Data[0].Name
+
 		url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
 			channel + "-1280x720.jpg?" + timestamp
-		msg := fmt.Sprintf(`%s сейчас онлайн!
-%s
-Сморков: %d
-Игра: %s
-https://twitch.tv/%s`, channel, data.Data[0].Title, data.Data[0].Viewers, gdata.Data[0].Name, channel)
 
+		msg := templates.ExecuteTemplate("commands_info", infoCommand)
 		editmsg.Media = tgbotapi.BaseInputMedia{
-			Type:    "photo",
-			Media:   url,
-			Caption: msg,
+			Type:      "photo",
+			Media:     url,
+			Caption:   msg,
+			ParseMode: tgbotapi.ModeMarkdown,
 		}
 	} else {
+		msg := templates.ExecuteTemplate("commands_info", infoCommand)
 		editmsg.Media = tgbotapi.BaseInputMedia{
-			Type:    "photo",
-			Media:   "https://i.redd.it/07onk217ojfz.png",
-			Caption: fmt.Sprintf("%s ниче не стримит", channel),
+			Type:      "photo",
+			Media:     "https://i.redd.it/07onk217ojfz.png",
+			Caption:   msg,
+			ParseMode: tgbotapi.ModeMarkdown,
 		}
 	}
 
