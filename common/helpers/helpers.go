@@ -52,12 +52,14 @@ func SendMessage(api *tgbotapi.BotAPI, update *tgbotapi.Update, text string, isR
 	if isReply {
 		msg.ReplyToMessageID = update.Message.MessageID
 	}
+	msg.ParseMode = tgbotapi.ModeMarkdown
 	sendMessage(api, msg)
 }
 
 //SendMessageChatID sends a message by chat id
 func SendMessageChatID(api *tgbotapi.BotAPI, chatID int64, text string) {
 	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ParseMode = tgbotapi.ModeMarkdown
 	sendMessage(api, msg)
 }
 
@@ -70,6 +72,7 @@ func SendPhoto(api *tgbotapi.BotAPI, update *tgbotapi.Update, photoURL string, c
 	if isReply {
 		photo.ReplyToMessageID = update.Message.MessageID
 	}
+	photo.ParseMode = tgbotapi.ModeMarkdown
 	sendMessage(api, photo)
 }
 
@@ -79,6 +82,7 @@ func SendPhotoChatID(api *tgbotapi.BotAPI, chatID int64, photoURL string, captio
 	photo.FileID = photoURL
 	photo.UseExisting = true
 	photo.Caption = caption
+	photo.ParseMode = tgbotapi.ModeMarkdown
 	sendMessage(api, photo)
 }
 
