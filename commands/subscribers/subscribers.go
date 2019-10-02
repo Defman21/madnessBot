@@ -2,10 +2,10 @@ package commands
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/templates"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io/ioutil"
 )
@@ -36,11 +36,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		return
 	}
 
-	var subscribers string
-
-	for username, _ := range users {
-		subscribers += fmt.Sprintf("%s\n", username)
-	}
+	subscribers := templates.ExecuteTemplate("commands_subscribers", users)
 
 	helpers.SendMessage(api, update, subscribers, true)
 }

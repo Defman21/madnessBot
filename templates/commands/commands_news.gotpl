@@ -1,0 +1,3 @@
+{{.Text}}
+{{.Time}}
+{{printf "[Пост](https://vk.com/wall%d_%d)" .OwnerID .ID}}

@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/templates"
 	"os"
 	"time"
 
@@ -15,6 +15,13 @@ type Command struct{}
 
 func (c *Command) UseLua() bool {
 	return false
+}
+
+type commandTemplate struct {
+	Text    string
+	Time    string
+	OwnerID int64
+	ID      int64
 }
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
@@ -61,11 +68,15 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		data.Response.Items[0] = data.Response.Items[1]
 	}
 
-	url := fmt.Sprintf("https://vk.com/wall%d_%d", data.Response.Items[0].OwnerID, data.Response.Items[0].ID)
 	loc, _ := time.LoadLocation("Europe/Moscow")
 	postTime := time.Unix(data.Response.Items[0].Date, 0).In(loc).Format("02.01 15:04")
 
-	text := fmt.Sprintf("%s\n%s\n%s", postTime, data.Response.Items[0].Text, url)
+	text := templates.ExecuteTemplate("commands_news", commandTemplate{
+		Text:    data.Response.Items[0].Text,
+		Time:    postTime,
+		OwnerID: data.Response.Items[0].OwnerID,
+		ID:      data.Response.Items[0].ID,
+	})
 
 	for _, attachment := range data.Response.Items[0].Attachments {
 		if attachment.Type != "photo" {

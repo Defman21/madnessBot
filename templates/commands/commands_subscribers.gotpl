@@ -1,0 +1,3 @@
+{{range $login, $id := .}}
+    - {{$login}} (id: {{$id}})
+{{- end}}
