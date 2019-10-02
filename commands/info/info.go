@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Defman21/madnessBot/common"
-	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -49,27 +48,10 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		return
 	}
 
-	type TwitchResponse struct {
-		Data []struct {
-			Title   string `json:"title"`
-			Viewers int    `json:"viewer_count"`
-			Game    string `json:"game_id"`
-		} `json:"data"`
-	}
-
-	var data TwitchResponse
-	req := helpers.Request.Get("https://api.twitch.tv/helix/streams").Query(
-		struct {
-			UserLogin string `json:"user_login"`
-		}{
-			UserLogin: channel,
-		},
-	)
-	oauth.AddHeadersUsing("twitch", req)
-	_, _, errs := req.EndStruct(&data)
+	stream, errs := helpers.GetTwitchStreamByLogin(channel)
 
 	if errs != nil {
-		common.Log.Error().Errs("errs", errs).Msg("Request failed")
+		common.Log.Error().Errs("errs", errs).Msg("Failed to get the stream")
 		return
 	}
 
@@ -85,41 +67,23 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		Online: false,
 	}
 
-	if len(data.Data) != 0 {
-		type game struct {
-			Name string `json:"name"`
-		}
-
-		type gameResponse struct {
-			Data []game `json:"data"`
-		}
-
-		var gdata gameResponse
-
-		if data.Data[0].Game != "0" {
-			req = helpers.Request.Get("https://api.twitch.tv/helix/games").Query(
-				struct {
-					ID string
-				}{
-					ID: data.Data[0].Game,
-				},
-			)
-			oauth.AddHeadersUsing("twitch", req)
-			_, _, errs = req.EndStruct(&gdata)
-
-			if errs != nil {
-				common.Log.Error().Errs("errs", errs).Msg("Request failed")
-				return
-			}
-		} else {
-			gdata = gameResponse{Data: []game{{Name: "не указана"}}}
+	if stream != nil {
+		game, errs := helpers.GetTwitchGame(stream.Game)
+		if errs != nil {
+			common.Log.Error().Errs("errs", errs).Msg("Failed to get the game")
+			return
 		}
 
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		infoCommand.Online = true
-		infoCommand.Title = data.Data[0].Title
-		infoCommand.Viewers = data.Data[0].Viewers
-		infoCommand.Game = gdata.Data[0].Name
+		infoCommand.Title = stream.Title
+		infoCommand.Viewers = stream.Viewers
+
+		if game != nil {
+			infoCommand.Game = game.Name
+		} else {
+			infoCommand.Game = "не указана"
+		}
 
 		url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
 			channel + "-1280x720.jpg?" + timestamp
