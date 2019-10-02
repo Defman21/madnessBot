@@ -28,7 +28,7 @@ type commandTemplate struct {
 
 var nameToOwnerID = map[string]int{}
 
-func init() {
+func generateNameToOwnerMap() {
 	for _, value := range strings.Split(os.Getenv("NEWS_LIST"), ";") {
 		res := strings.Split(value, ":")
 		name, ownerIDraw := res[0], res[1]
@@ -44,6 +44,7 @@ func init() {
 }
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	generateNameToOwnerMap()
 	name := update.Message.CommandArguments()
 
 	if name == "" {
