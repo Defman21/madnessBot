@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/templates"
 	"time"
 
 	"github.com/Defman21/madnessBot/common"
@@ -14,6 +15,13 @@ type Command struct{}
 
 func (c *Command) UseLua() bool {
 	return false
+}
+
+type commandTemplate struct {
+	Type  string
+	Room  string
+	Title string
+	ID    string
 }
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
@@ -50,14 +58,12 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		return
 	}
 
-	var url string
-	if response.Data.CurrentSong.Type == "youtube" {
-		url = fmt.Sprintf("https://youtube.com/watch?v=%s", response.Data.CurrentSong.ID)
-	} else {
-		url = ""
-	}
-
-	msg := fmt.Sprintf("В комнате %s играет %s\n%s", room, response.Data.CurrentSong.Name, url)
+	msg := templates.ExecuteTemplate("commands_music", commandTemplate{
+		Type:  response.Data.CurrentSong.Type,
+		Room:  room,
+		Title: response.Data.CurrentSong.Name,
+		ID:    response.Data.CurrentSong.ID,
+	})
 	helpers.SendMessage(api, update, msg, false)
 }
 

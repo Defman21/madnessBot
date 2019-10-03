@@ -1,0 +1,5 @@
+{{if eq .Type "youtube"}}
+В комнате {{.Room}} играет: [{{.Title}}](https://youtu.be/{{.ID}})
+{{else}}
+В комнате {{.Room}} играет: {{.Title}} (где-то в SoundCloud)
+{{end}}
