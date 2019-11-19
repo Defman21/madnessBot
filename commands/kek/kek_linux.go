@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/Defman21/madnessBot/commands"
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"gopkg.in/gographics/imagick.v3/imagick"
 	"io"
@@ -22,7 +22,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 	photos, err := api.GetUserProfilePhotos(tgbotapi.NewUserProfilePhotos(update.Message.From.ID))
 	if err != nil {
-		common.Log.Warn().Err(err).Msg("Failed to get user profile photo")
+		logger.Log.Warn().Err(err).Msg("Failed to get user profile photo")
 	} else {
 		direction := update.Message.CommandArguments()
 		zulul := photos.Photos[0]

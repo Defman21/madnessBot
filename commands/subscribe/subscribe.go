@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
-	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io/ioutil"
 )
@@ -30,14 +30,14 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	userID, found := helpers.GetTwitchUserIDByLogin(channel)
 	if found {
 		if errs := helpers.SendTwitchHubMessage(channel, "subscribe", generateTopic(userID)); errs != nil {
-			common.Log.Error().Errs("errs", errs).Msg("Failed to subscribe")
+			logger.Log.Error().Errs("errs", errs).Msg("Failed to subscribe")
 			return
 		}
 
 		var users Users
 		bytes, err := ioutil.ReadFile("./data/users.json")
 		if err != nil {
-			common.Log.Error().Err(err).Msg("Failed to read users.json")
+			logger.Log.Error().Err(err).Msg("Failed to read users.json")
 		}
 
 		json.Unmarshal(bytes, &users)
@@ -46,11 +46,11 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		bytes, err = json.Marshal(users)
 
 		if err != nil {
-			common.Log.Error().Err(err).Msg("Failed to serialize users")
+			logger.Log.Error().Err(err).Msg("Failed to serialize users")
 		} else {
 			err := ioutil.WriteFile("./data/users.json", bytes, 0644)
 			if err != nil {
-				common.Log.Error().Err(err).Msg("Failed to write users.json")
+				logger.Log.Error().Err(err).Msg("Failed to write users.json")
 				return
 			}
 			helpers.SendMessage(

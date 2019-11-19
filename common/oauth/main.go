@@ -1,7 +1,7 @@
 package oauth
 
 import (
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/parnurzeal/gorequest"
 )
 
@@ -37,7 +37,7 @@ func RefreshExpired() {
 	for name, provider := range providers {
 		if provider.ExpiresSoon() {
 			provider.Refresh()
-			common.Log.Info().Str("name", name).Msg("Refreshed provider")
+			logger.Log.Info().Str("name", name).Msg("Refreshed provider")
 		}
 	}
 }

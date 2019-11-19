@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/common/metrics"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/marpaia/graphite-golang"
@@ -55,7 +55,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	_, err := api.Send(editmsg)
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to edit a message")
+		logger.Log.Error().Err(err).Msg("Failed to edit a message")
 	}
 
 	if isGif {

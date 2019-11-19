@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/gob"
+	"github.com/Defman21/madnessBot/common/logger"
 	"os"
 	"time"
 )
@@ -15,7 +16,7 @@ func (r *ResubscribeStateSingleton) Save() {
 		"./data/resub-state.gob",
 		os.O_CREATE|os.O_WRONLY, os.ModePerm,
 	); err != nil {
-		Log.Error().Err(err).Msg("Failed to open/create resub-state.gob")
+		logger.Log.Error().Err(err).Msg("Failed to open/create resub-state.gob")
 	} else {
 		defer file.Close()
 
@@ -25,16 +26,16 @@ func (r *ResubscribeStateSingleton) Save() {
 		err = encoder.Encode(r)
 
 		if err != nil {
-			Log.Error().Err(err).Msg("Failed to encode data")
+			logger.Log.Error().Err(err).Msg("Failed to encode data")
 		}
 
-		Log.Info().Interface("state", r).Msg("Saved resubscribe state")
+		logger.Log.Info().Interface("state", r).Msg("Saved resubscribe state")
 	}
 }
 
 func (r *ResubscribeStateSingleton) Load() {
 	if file, err := os.OpenFile("./data/resub-state.gob", os.O_RDONLY, os.ModePerm); err != nil {
-		Log.Error().Err(err).Msg("Failed to open resub-state.gob")
+		logger.Log.Error().Err(err).Msg("Failed to open resub-state.gob")
 	} else {
 		defer file.Close()
 
@@ -42,10 +43,10 @@ func (r *ResubscribeStateSingleton) Load() {
 
 		err = decoder.Decode(r)
 		if err != nil {
-			Log.Error().Err(err).Msg("Failed to decode resub-state.gob")
+			logger.Log.Error().Err(err).Msg("Failed to decode resub-state.gob")
 		}
 
-		Log.Info().Interface("state", r).Msg("Loaded resubscribe state")
+		logger.Log.Info().Interface("state", r).Msg("Loaded resubscribe state")
 	}
 }
 

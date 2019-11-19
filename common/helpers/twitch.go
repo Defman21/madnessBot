@@ -1,11 +1,10 @@
 package helpers
 
 import (
-	"fmt"
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/common/oauth"
 	"github.com/Defman21/madnessBot/common/types"
-	"os"
+	"github.com/Defman21/madnessBot/config"
 )
 
 // GetTwitchUser get user by login
@@ -32,7 +31,7 @@ func GetTwitchUserIDByLogin(login string) (string, bool) {
 	user, errs := GetTwitchUser(login)
 
 	if errs != nil {
-		common.Log.Error().Errs("errs", errs).Msg("Request failed")
+		logger.Log.Error().Errs("errs", errs).Msg("Request failed")
 		return "", false
 	}
 
@@ -45,14 +44,16 @@ func GetTwitchUserIDByLogin(login string) (string, bool) {
 
 //SendTwitchHubMessage sends a message to the Twitch Hub
 func SendTwitchHubMessage(channel string, mode string, topic string) []error {
-	req := Request.Post("https://api.twitch.tv/helix/webhooks/hub").Query(
-		types.TwitchHub{
-			Callback:     fmt.Sprintf("%s%s", os.Getenv("TWITCH_URL"), channel),
-			Mode:         mode,
-			LeaseSeconds: 864000,
-			Topic:        topic,
-		},
-	)
+	query := types.TwitchHub{
+		Callback:     config.Config.Twitch.Webhook.GetURL(channel),
+		Mode:         mode,
+		LeaseSeconds: 864000,
+		Topic:        topic,
+	}
+
+	req := Request.Post("https://api.twitch.tv/helix/webhooks/hub").Query(query)
+
+	logger.Log.Debug().Interface("query", query).Msg("Twitch hub message")
 
 	oauth.AddHeadersUsing("twitch", req)
 	_, _, errs := req.End()

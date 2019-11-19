@@ -6,6 +6,7 @@ import (
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io/ioutil"
 )
@@ -36,7 +37,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	bytes, err := ioutil.ReadFile("./data/users.json")
 	if err != nil {
-		common.Log.Warn().Err(err).Msg("Failed to read users.json")
+		logger.Log.Warn().Err(err).Msg("Failed to read users.json")
 		return
 	}
 
@@ -47,11 +48,11 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if userID, ok := users[channel]; ok {
 		go func(channel string, userID string) {
 			if errs := helpers.SendTwitchHubMessage(channel, "unsubscribe", generateTopic(userID)); errs != nil {
-				common.Log.Error().Errs("errs", errs).Msg("Failed to send a request")
+				logger.Log.Error().Errs("errs", errs).Msg("Failed to send a request")
 				return
 			}
 
-			common.Log.Info().Str("user", channel).Msg("Unsubscribed")
+			logger.Log.Info().Str("user", channel).Msg("Unsubscribed")
 
 			delete(users, channel)
 
@@ -59,7 +60,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			err = ioutil.WriteFile("./data/users.json", []byte(jsonStr), 0644)
 
 			if err == nil {
-				common.Log.Info().Msg("Updated users.json")
+				logger.Log.Info().Msg("Updated users.json")
 				helpers.SendMessage(
 					api,
 					update,
@@ -67,11 +68,11 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 					true,
 				)
 			} else {
-				common.Log.Warn().Err(err).Msg("Couldn't write to users.json")
+				logger.Log.Warn().Err(err).Msg("Couldn't write to users.json")
 			}
 		}(channel, userID)
 	} else {
-		common.Log.Warn().Str("channel", channel).Msg("Channel not found")
+		logger.Log.Warn().Str("channel", channel).Msg("Channel not found")
 	}
 }
 

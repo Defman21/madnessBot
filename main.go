@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	_ "github.com/Defman21/madnessBot/commands/cat"
@@ -24,12 +23,13 @@ import (
 	_ "github.com/Defman21/madnessBot/commands/up"
 	_ "github.com/Defman21/madnessBot/commands/version"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/common/oauth"
+	"github.com/Defman21/madnessBot/config"
 	_ "github.com/Defman21/madnessBot/templates"
 	"net/http"
 	"os"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/Defman21/madnessBot/common"
@@ -38,49 +38,41 @@ import (
 	_ "github.com/Defman21/madnessBot/common/oauth/twitch"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/joho/godotenv"
 )
 
 func init() {
-	err := godotenv.Load()
-
-	if err != nil {
-		fmt.Printf("Failed to load .env")
+	if initialized := config.Init(); !initialized {
 		os.Exit(1)
 	}
-
-	common.SetLogLevel()
+	logger.SetLogLevel(config.Config.LogLevel)
+	logger.Log.Info().Interface("cfg", config.Config).Msg("Initialized config")
 }
 
-var log = &common.Log
+var log = &logger.Log
 
 func main() {
-	noWebhook := flag.Bool("nowebhook", false, "Don't use webhooks")
-	useGraphite := flag.Bool("graphite", false, "Use graphite")
-	flag.Parse()
-
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
+	bot, err := tgbotapi.NewBotAPI(config.Config.Token)
 
 	if err != nil {
 		log.Fatal().
 			Err(err).
-			Str("token", os.Getenv("BOT_TOKEN")).
+			Str("token", config.Config.Token).
 			Msg("Failed to create a bot")
 	}
 	var updates tgbotapi.UpdatesChannel
 
 	log.Info().Str("username", bot.Self.UserName).Msg("Connected")
 
-	if *noWebhook {
-		log.Debug().Msg("Long-polling")
+	if !config.Config.Webhook.Enabled() {
+		log.Info().Str("method", "long-polling").Msg("Initialized Telegram API")
 		_, _ = bot.Request(tgbotapi.RemoveWebhookConfig{})
 
 		u := tgbotapi.NewUpdate(0)
 		u.Timeout = 3
 
 		updates = bot.GetUpdatesChan(u)
-
 	} else {
+		log.Info().Str("method", "webhook").Msg("Initialized Telegram API")
 		_, err = bot.Request(tgbotapi.RemoveWebhookConfig{})
 
 		if err != nil {
@@ -89,11 +81,11 @@ func main() {
 				Msg("Failed to remove a webhook")
 		}
 
-		_, err = bot.Request(tgbotapi.NewWebhook(os.Getenv("MADNESS_URL")))
+		_, err = bot.Request(tgbotapi.NewWebhook(config.Config.Webhook.GetURL()))
 		if err != nil {
 			log.Fatal().
 				Err(err).
-				Str("url", os.Getenv("MADNESS_URL")).
+				Str("url", config.Config.Webhook.GetURL()).
 				Msg("Failed to set a weebhok")
 		}
 
@@ -105,18 +97,25 @@ func main() {
 			log.Info().Interface("webhook", info).Msg("Webhook set")
 		}
 
-		updates = bot.ListenForWebhook(os.Getenv("MADNESS_HOOK"))
+		updates = bot.ListenForWebhook(config.Config.Webhook.Path)
 	}
 
-	if *useGraphite {
-		metrics.Init()
+	if config.Config.Graphite != nil {
+		if config.Config.Graphite.Enabled {
+			metrics.Init()
+		}
+	} else {
+		log.Info().Msg("Graphite integration is disabled")
 	}
 
-	http.HandleFunc(os.Getenv("TWITCH_HOOK"), twitchNotificationHandler(bot))
+	if config.Config.Twitch.Webhook.Enabled() {
+		http.HandleFunc(config.Config.Twitch.Webhook.Path, twitchNotificationHandler(bot))
+	} else {
+		log.Info().Msg("Twitch integration is disabled")
+	}
 
-	go http.ListenAndServe("0.0.0.0:9000", nil)
+	go http.ListenAndServe(config.Config.Server.GetBindAddress(), nil)
 
-	chatID, _ := strconv.ParseInt(os.Getenv("CHAT_ID"), 10, 64)
 	sleepRegex := regexp.MustCompile(`(?i)\Aя\s+спать`)
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
 	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^?]+)`)
@@ -137,7 +136,7 @@ func main() {
 			continue
 		}
 
-		if update.Message.Chat.ID != chatID {
+		if update.Message.Chat.ID != config.Config.ChatID {
 			continue
 		}
 

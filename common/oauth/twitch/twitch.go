@@ -4,8 +4,9 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/common/oauth"
+	"github.com/Defman21/madnessBot/config"
 	"github.com/parnurzeal/gorequest"
 	"io/ioutil"
 	"net/http"
@@ -36,17 +37,17 @@ func (t *twitchOauth) Init() {
 		defer file.Close()
 
 		if err != nil {
-			common.Log.Error().Err(err).Msg("Failed to load twitch state file")
+			logger.Log.Error().Err(err).Msg("Failed to load twitch state file")
 		}
 
 		dec := gob.NewDecoder(file)
 		err = dec.Decode(t)
 
 		if err != nil {
-			common.Log.Error().Err(err).Msg("Failed to decode twitch state file")
+			logger.Log.Error().Err(err).Msg("Failed to decode twitch state file")
 		}
 
-		common.Log.Info().Interface("state", twitchInstance).Msg("Loaded twitch oauth state")
+		logger.Log.Info().Interface("state", twitchInstance).Msg("Loaded twitch oauth state")
 	} else if os.IsNotExist(err) {
 		t.Refresh()
 	}
@@ -57,30 +58,30 @@ func (t *twitchOauth) Save() {
 	defer file.Close()
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to open twitch state file")
+		logger.Log.Error().Err(err).Msg("Failed to open twitch state file")
 		return
 	}
 
 	enc := gob.NewEncoder(file)
 
 	if err = enc.Encode(t); err != nil {
-		common.Log.Error().Err(err).Msg("Failed to save twitch state file")
+		logger.Log.Error().Err(err).Msg("Failed to save twitch state file")
 		return
 	}
 
-	common.Log.Info().Interface("state", t).Msg("Saved twitch auth state")
+	logger.Log.Info().Interface("state", t).Msg("Saved twitch auth state")
 }
 
 func (t *twitchOauth) Authorize() {
 	queryParams := url.Values{}
-	queryParams.Add("client_id", os.Getenv("TWITCH_CLIENT_ID"))
-	queryParams.Add("client_secret", os.Getenv("TWITCH_CLIENT_SECRET"))
+	queryParams.Add("client_id", config.Config.Twitch.ClientID)
+	queryParams.Add("client_secret", config.Config.Twitch.ClientSecret)
 	queryParams.Add("grant_type", "client_credentials")
 
 	req, err := http.NewRequest("POST", oauthUrl, nil)
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to create a request")
+		logger.Log.Error().Err(err).Msg("Failed to create a request")
 		return
 	}
 
@@ -93,7 +94,7 @@ func (t *twitchOauth) Authorize() {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to send the request")
+		logger.Log.Error().Err(err).Msg("Failed to send the request")
 		return
 	}
 
@@ -102,20 +103,20 @@ func (t *twitchOauth) Authorize() {
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to read body of the request")
+		logger.Log.Error().Err(err).Msg("Failed to read body of the request")
 		return
 	}
 
 	err = json.Unmarshal(body, t)
 
 	if err != nil {
-		common.Log.Error().Err(err).Str("body", string(body)).Msg("Failed to parse JSON")
+		logger.Log.Error().Err(err).Str("body", string(body)).Msg("Failed to parse JSON")
 		return
 	}
 
 	t.UpdateExpire()
 
-	common.Log.Info().Interface("oauth", t).Msg("Created tokens successfully")
+	logger.Log.Info().Interface("oauth", t).Msg("Created tokens successfully")
 
 	return
 }
@@ -130,7 +131,7 @@ func (t *twitchOauth) UpdateExpire() {
 }
 
 func (t *twitchOauth) AddHeaders(agent *gorequest.SuperAgent) {
-	agent.Set("Client-UserID", os.Getenv("TWITCH_CLIENT_ID"))
+	agent.Set("Client-UserID", config.Config.Twitch.ClientID)
 	agent.Set("Authorization", fmt.Sprintf("Bearer %s", t.AccessToken))
 }
 

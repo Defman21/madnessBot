@@ -2,7 +2,7 @@ package notifier
 
 import (
 	"encoding/gob"
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/logger"
 	"os"
 	"strings"
 )
@@ -31,17 +31,17 @@ func (n *Notifier) Load() {
 		defer file.Close()
 
 		if err != nil {
-			common.Log.Error().Err(err).Msg("Failed to load notifier file")
+			logger.Log.Error().Err(err).Msg("Failed to load notifier file")
 		}
 
 		dec := gob.NewDecoder(file)
 		err = dec.Decode(&n.userMap)
 
 		if err != nil {
-			common.Log.Error().Err(err).Msg("Failed to decode notifier file")
+			logger.Log.Error().Err(err).Msg("Failed to decode notifier file")
 		}
 
-		common.Log.Info().Interface("map", n.userMap).Msg("Loaded notifier map")
+		logger.Log.Info().Interface("map", n.userMap).Msg("Loaded notifier map")
 	} else if os.IsNotExist(err) {
 		n.saveGob(&gobStruct{})
 	}
@@ -52,7 +52,7 @@ func (n Notifier) saveGob(userMap *gobStruct) {
 	defer file.Close()
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to create notifier gob")
+		logger.Log.Error().Err(err).Msg("Failed to create notifier gob")
 		return
 	}
 
@@ -64,7 +64,7 @@ func (n Notifier) saveGob(userMap *gobStruct) {
 	}
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to save notifier gob")
+		logger.Log.Error().Err(err).Msg("Failed to save notifier gob")
 	}
 }
 

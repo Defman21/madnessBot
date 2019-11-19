@@ -1,10 +1,9 @@
 package metrics
 
 import (
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/logger"
+	"github.com/Defman21/madnessBot/config"
 	"github.com/marpaia/graphite-golang"
-	"os"
-	"strconv"
 )
 
 type GraphiteMetric struct {
@@ -18,17 +17,15 @@ func Graphite() *GraphiteMetric {
 }
 
 func Init() {
-	port, err := strconv.Atoi(os.Getenv("GRAPHITE_PORT"))
+	graphiteInstance = &GraphiteMetric{server: nil}
+
+	graphiteSrv, err := graphite.NewGraphite(
+		config.Config.Graphite.Host,
+		config.Config.Graphite.Port,
+	)
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Invalid GRAPHITE_PORT")
-		graphiteInstance = &GraphiteMetric{server: nil}
-	}
-
-	graphiteSrv, err := graphite.NewGraphite(os.Getenv("GRAPHITE_HOST"), port)
-
-	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to initialize graphite")
+		logger.Log.Error().Err(err).Msg("Failed to initialize graphite")
 		graphiteInstance = &GraphiteMetric{server: nil}
 	}
 
@@ -37,11 +34,11 @@ func Init() {
 
 func (g *GraphiteMetric) Send(metric graphite.Metric) {
 	if g.server == nil {
-		common.Log.Debug().Interface("metric", metric).Msg("Graphite is disabled")
+		logger.Log.Debug().Interface("metric", metric).Msg("Graphite is disabled")
 		return
 	}
 
 	if err := g.server.SendMetric(metric); err != nil {
-		common.Log.Error().Err(err).Msg("Failed to send metric")
+		logger.Log.Error().Err(err).Msg("Failed to send metric")
 	}
 }

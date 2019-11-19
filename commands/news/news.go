@@ -3,13 +3,11 @@ package commands
 import (
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/common/logger"
+	"github.com/Defman21/madnessBot/config"
 	"github.com/Defman21/madnessBot/templates"
-	"os"
-	"strconv"
-	"strings"
 	"time"
 
-	"github.com/Defman21/madnessBot/common"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -26,24 +24,20 @@ type commandTemplate struct {
 	ID      int64
 }
 
-var nameToOwnerID = map[string]int{}
+var nameToOwnerID = map[string]int64{}
 
 func generateNameToOwnerMap() {
-	for _, value := range strings.Split(os.Getenv("NEWS_LIST"), ";") {
-		res := strings.Split(value, ":")
-		name, ownerIDraw := res[0], res[1]
-
-		ownerID, err := strconv.Atoi(ownerIDraw)
-
-		if err != nil {
-			common.Log.Error().Err(err).Msg("Failed to convert owner id from str to int")
-		}
-
+	for name, ownerID := range config.Config.News.Sources {
 		nameToOwnerID[name] = ownerID
 	}
 }
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	if config.Config.News == nil || !config.Config.News.Enabled {
+		logger.Log.Info().Msg("VK News integration is disabled")
+		return
+	}
+
 	generateNameToOwnerMap()
 	name := update.Message.CommandArguments()
 
@@ -54,7 +48,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	ownerID, exists := nameToOwnerID[name]
 
 	if !exists {
-		common.Log.Warn().Interface("map", nameToOwnerID).Msg("Name does not exist in the map")
+		logger.Log.Warn().Interface("map", nameToOwnerID).Msg("Name does not exist in the map")
 		return
 	}
 
@@ -80,7 +74,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	_, _, errs := helpers.Request.Get("https://api.vk.com/method/wall.get").Query(
 		struct {
-			OwnerID     int `json:"owner_id"`
+			OwnerID     int64 `json:"owner_id"`
 			Count       int
 			Version     float64 `json:"v"`
 			AccessToken string  `json:"access_token"`
@@ -88,12 +82,12 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			OwnerID:     ownerID,
 			Count:       2,
 			Version:     5.71,
-			AccessToken: os.Getenv("VK_TOKEN"),
+			AccessToken: config.Config.News.Token,
 		},
 	).EndStruct(&data)
 
 	if errs != nil {
-		common.Log.Error().Errs("errs", errs).Msg("Request failed")
+		logger.Log.Error().Errs("errs", errs).Msg("Request failed")
 		return
 	}
 

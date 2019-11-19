@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/common/metrics"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/marpaia/graphite-golang"
@@ -27,7 +27,7 @@ func Run(name string, api *tgbotapi.BotAPI, update *tgbotapi.Update) bool {
 		if command.UseLua() {
 			// TODO: Run {name}/{name}.lua
 		}
-		common.Log.Info().Str("command", name).Msg("Called a command")
+		logger.Log.Info().Str("command", name).Msg("Called a command")
 		metrics.Graphite().Send(graphite.NewMetric(
 			fmt.Sprintf("stats.command.%s", name), "1",
 			time.Now().Unix(),

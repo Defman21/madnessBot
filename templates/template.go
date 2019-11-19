@@ -2,7 +2,7 @@ package templates
 
 import (
 	"fmt"
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/notifier"
 	"strings"
 	"text/template"
@@ -20,7 +20,7 @@ func init() {
 	var err error
 	tpl, err = template.New("root").Funcs(templateFuncNamespaceMap).ParseGlob(templatesPattern)
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to load templates")
+		logger.Log.Error().Err(err).Msg("Failed to load templates")
 	}
 }
 
@@ -31,7 +31,7 @@ func ExecuteTemplate(name string, data interface{}) string {
 	err := tpl.ExecuteTemplate(&buf, fmt.Sprintf("%s.gotpl", name), data)
 
 	if err != nil {
-		common.Log.Error().Err(err).Str("tpl_name", name).Msg("Failed to execute the template")
+		logger.Log.Error().Err(err).Str("tpl_name", name).Msg("Failed to execute the template")
 		return ""
 	}
 	return buf.String()

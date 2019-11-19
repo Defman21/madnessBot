@@ -3,8 +3,8 @@ package commands
 import (
 	"encoding/json"
 	"github.com/Defman21/madnessBot/commands"
-	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/templates"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io/ioutil"
@@ -20,7 +20,7 @@ func (c *Command) UseLua() bool {
 func GetList() (users Users) {
 	bytes, err := ioutil.ReadFile("./data/users.json")
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to read users.json")
+		logger.Log.Error().Err(err).Msg("Failed to read users.json")
 		return nil
 	}
 
@@ -32,7 +32,7 @@ func GetList() (users Users) {
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	users := GetList()
 	if users == nil {
-		common.Log.Warn().Msg("Empty user list")
+		logger.Log.Warn().Msg("Empty user list")
 		return
 	}
 

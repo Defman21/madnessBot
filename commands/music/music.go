@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/templates"
 	"time"
 
-	"github.com/Defman21/madnessBot/common"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -49,7 +49,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		EndStruct(&response)
 
 	if errs != nil {
-		common.Log.Error().Errs("errs", errs).Msg("Request failed")
+		logger.Log.Error().Errs("errs", errs).Msg("Request failed")
 		return
 	}
 

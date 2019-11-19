@@ -3,12 +3,12 @@ package commands
 import (
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/templates"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Defman21/madnessBot/common"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -44,14 +44,14 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	placeholderMsg, err := api.Send(placeholder)
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to send a placeholder message")
+		logger.Log.Error().Err(err).Msg("Failed to send a placeholder message")
 		return
 	}
 
 	stream, errs := helpers.GetTwitchStreamByLogin(channel)
 
 	if errs != nil {
-		common.Log.Error().Errs("errs", errs).Msg("Failed to get the stream")
+		logger.Log.Error().Errs("errs", errs).Msg("Failed to get the stream")
 		return
 	}
 
@@ -70,7 +70,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if stream != nil {
 		game, errs := helpers.GetTwitchGame(stream.Game)
 		if errs != nil {
-			common.Log.Error().Errs("errs", errs).Msg("Failed to get the game")
+			logger.Log.Error().Errs("errs", errs).Msg("Failed to get the game")
 			return
 		}
 
@@ -108,7 +108,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	_, err = api.Send(editmsg)
 
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to edit a message")
+		logger.Log.Error().Err(err).Msg("Failed to edit a message")
 	}
 }
 

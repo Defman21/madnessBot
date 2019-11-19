@@ -6,6 +6,7 @@ import (
 	"github.com/Defman21/madnessBot/commands"
 	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io/ioutil"
 )
@@ -27,7 +28,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 	bytes, err := ioutil.ReadFile("./data/users.json")
 	if err != nil {
-		common.Log.Error().Err(err).Msg("Failed to read users.json")
+		logger.Log.Error().Err(err).Msg("Failed to read users.json")
 		return
 	}
 
@@ -38,9 +39,9 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	for channel, userID := range users {
 		go func(channel string, userID string) {
 			if errs := helpers.SendTwitchHubMessage(channel, "subscribe", generateTopic(userID)); errs != nil {
-				common.Log.Error().Errs("errs", errs).Msg("Failed to resubscribe")
+				logger.Log.Error().Errs("errs", errs).Msg("Failed to resubscribe")
 			} else {
-				common.Log.Info().Str("channel", channel).Msg("Subscribed")
+				logger.Log.Info().Str("channel", channel).Msg("Subscribed")
 			}
 		}(channel, userID)
 	}

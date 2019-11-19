@@ -1,22 +1,14 @@
 package commands
 
 import (
-	"github.com/Defman21/madnessBot/common"
+	"github.com/Defman21/madnessBot/config"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"os"
-	"strconv"
-	"strings"
 )
 
 func PayCheck(bot *tgbotapi.BotAPI, update *tgbotapi.Update) bool {
 	payingUsers := map[int]bool{}
-	for _, user := range strings.Split(os.Getenv("PAYING_USERS"), ";") {
-		userID, err := strconv.Atoi(user)
-		if err != nil {
-			common.Log.Error().Err(err).Msg("Failed to convert userID str to int")
-			continue
-		}
-		payingUsers[userID] = true
+	for user := range config.Config.Payers {
+		payingUsers[user] = true
 	}
 
 	user := update.Message.From.ID
@@ -24,8 +16,7 @@ func PayCheck(bot *tgbotapi.BotAPI, update *tgbotapi.Update) bool {
 		return true
 	}
 
-	msg := tgbotapi.NewVoiceShare(update.Message.Chat.ID,
-		"AwADAgADwgADC6ZpS13yfdzm_pTzAg")
+	msg := tgbotapi.NewVoiceShare(update.Message.Chat.ID, "AwADAgADwgADC6ZpS13yfdzm_pTzAg")
 	bot.Send(msg)
 	return false
 }

@@ -1,4 +1,4 @@
-package common
+package logger
 
 import (
 	"github.com/rs/zerolog"
@@ -8,14 +8,12 @@ import (
 
 var Log = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC822}).With().Timestamp().Logger()
 
-func SetLogLevel() {
+func SetLogLevel(logLevel string) {
 	levels := map[string]zerolog.Level{
 		"DEBUG": zerolog.DebugLevel,
 		"INFO":  zerolog.InfoLevel,
 		"WARN":  zerolog.WarnLevel,
 	}
-
-	logLevel := os.Getenv("LOG_LEVEL")
 
 	if logLevel == "" {
 		logLevel = "INFO"

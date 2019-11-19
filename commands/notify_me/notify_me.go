@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/Defman21/madnessBot/commands"
 	subscribers "github.com/Defman21/madnessBot/commands/subscribers"
-	"github.com/Defman21/madnessBot/common"
 	"github.com/Defman21/madnessBot/common/helpers"
+	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/Defman21/madnessBot/notifier"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -21,7 +21,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	existingSubscribers := subscribers.GetList()
 
 	if existingSubscribers == nil {
-		common.Log.Warn().Msg("Empty user list")
+		logger.Log.Warn().Msg("Empty user list")
 		return
 	}
 
