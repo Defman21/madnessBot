@@ -20,7 +20,7 @@ type twitchConfig struct {
 type graphiteConfig struct {
 	Host    string `toml:"host"`
 	Port    int    `toml:"port"`
-	Enabled bool   `toml:"nabled"`
+	Enabled bool   `toml:"enabled"`
 }
 
 type newsConfig struct {
