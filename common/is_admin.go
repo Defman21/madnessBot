@@ -16,6 +16,10 @@ func IsAdmin(user *tgbotapi.User) bool {
 	if _, exists := admins[user.ID]; exists {
 		return true
 	}
+	logger.Log.Warn().
+		Ints("admins", config.Config.Admins).
+		Int("user_id", user.ID).
+		Msg("Not an admin")
 	return false
 }
 
