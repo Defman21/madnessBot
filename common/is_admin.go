@@ -9,7 +9,7 @@ import (
 // IsAdmin 4Head
 func IsAdmin(user *tgbotapi.User) bool {
 	admins := map[int]bool{}
-	for admin := range config.Config.Admins {
+	for _, admin := range config.Config.Admins {
 		admins[admin] = true
 	}
 
