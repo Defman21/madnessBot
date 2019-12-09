@@ -90,6 +90,7 @@ func getConfigPath() string {
 }
 
 var Config config
+var Initialized = make(chan bool, 1)
 
 func Init() bool {
 	logger.Log.Info().Str("cfg", getConfigPath()).Msg("Config")
@@ -97,5 +98,6 @@ func Init() bool {
 		logger.Log.Error().Err(err).Msg("Failed to decode config.toml")
 		return false
 	}
+	Initialized <- true
 	return true
 }

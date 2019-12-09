@@ -49,7 +49,10 @@ func (t *twitchOauth) Init() {
 
 		logger.Log.Info().Interface("state", twitchInstance).Msg("Loaded twitch oauth state")
 	} else if os.IsNotExist(err) {
-		t.Refresh()
+		select {
+		case <-config.Initialized:
+			t.Refresh()
+		}
 	}
 }
 
