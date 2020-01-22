@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.0.0-rc1.0.20190601001839-ffe77fb717d3
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.3

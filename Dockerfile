@@ -9,8 +9,6 @@ WORKDIR /app
 COPY go.mod .
 COPY go.sum .
 
-RUN go get
-
 COPY . .
 
 RUN go build -o /app/madnessBot
