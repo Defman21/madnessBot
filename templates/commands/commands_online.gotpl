@@ -1,0 +1,4 @@
+Сейчас стримят:
+{{range $_, $login := .}}
+- [{{$login}}](https://twitch.tv/{{$login}})
+{{- end}}

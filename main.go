@@ -11,6 +11,7 @@ import (
 	_ "github.com/Defman21/madnessBot/commands/music"
 	_ "github.com/Defman21/madnessBot/commands/news"
 	_ "github.com/Defman21/madnessBot/commands/notify_me"
+	_ "github.com/Defman21/madnessBot/commands/online"
 	_ "github.com/Defman21/madnessBot/commands/resolve"
 	_ "github.com/Defman21/madnessBot/commands/resubscribe"
 	_ "github.com/Defman21/madnessBot/commands/reverse"

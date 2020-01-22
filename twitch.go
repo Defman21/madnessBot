@@ -8,6 +8,7 @@ import (
 	"github.com/Defman21/madnessBot/common/metrics"
 	"github.com/Defman21/madnessBot/common/types"
 	"github.com/Defman21/madnessBot/config"
+	"github.com/Defman21/madnessBot/online_state"
 	"github.com/Defman21/madnessBot/templates"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hashicorp/golang-lru"
@@ -56,6 +57,7 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 				Login string
 			}{Login: name})
 			helpers.SendMessageChatID(api, config.Config.ChatID, message)
+			online_state.Push(name, false)
 			return
 		}
 
@@ -97,5 +99,7 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 			fmt.Sprintf("stats.stream_push.%s", name), "1",
 			time.Now().Unix(),
 		))
+
+		online_state.Push(name, true)
 	}
 }
