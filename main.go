@@ -120,7 +120,6 @@ func main() {
 	sleepRegex := regexp.MustCompile(`(?i)\Aя\s+спать`)
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
 	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^?]+)`)
-	postyroniumRegex := regexp.MustCompile(`(?i)постирони(?:я|ю|и|й)`)
 
 	go common.ResubscribeState.Load()
 
@@ -143,9 +142,7 @@ func main() {
 
 		commandName := update.Message.Command()
 		if ran := commands.Run(commandName, bot, &update); !ran {
-			if postyroniumRegex.MatchString(update.Message.Text) {
-				helpers.SendMessage(bot, &update, "постирай трусы", true)
-			} else if sleepRegex.MatchString(update.Message.Text) {
+			if sleepRegex.MatchString(update.Message.Text) {
 				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Споки <3"))
 				commands.Run("cat", bot, &update)
 			} else if sadRegex.MatchString(update.Message.Text) {
