@@ -53,13 +53,8 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 				logger.Log.Error().Err(err).Msg("Failed to write users.json")
 				return
 			}
-			helpers.SendMessage(
-				api,
-				update,
-				fmt.Sprintf("Бот теперь аки маньяк будет преследовать %s "+
-					"до конца своих дней.", channel),
-				true,
-			)
+			helpers.SendMessage(api, update, fmt.Sprintf("Бот теперь аки маньяк будет преследовать %s "+
+				"до конца своих дней.", channel), true, true)
 		}
 	}
 }

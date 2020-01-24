@@ -26,25 +26,20 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	if _, exists := existingSubscribers[login]; !exists {
-		helpers.SendMessage(api, update, "бот не подписан на этого юзера", true)
+		helpers.SendMessage(api, update, "бот не подписан на этого юзера", true, true)
 		return
 	}
 
 	userName := update.Message.From.UserName
 	userID, found := helpers.GetTwitchUserIDByLogin(login)
 	if !found {
-		helpers.SendMessage(api, update, "стример не найден", true)
+		helpers.SendMessage(api, update, "стример не найден", true, true)
 		return
 	}
 
 	notifier.Get().Add(userID, fmt.Sprintf("@%s", userName))
 
-	helpers.SendMessage(
-		api,
-		update,
-		fmt.Sprintf("подписал тебя на оповещения от %s", login),
-		true,
-	)
+	helpers.SendMessage(api, update, fmt.Sprintf("подписал тебя на оповещения от %s", login), true, true)
 }
 
 func init() {

@@ -13,12 +13,13 @@ func sendMessage(api *tgbotapi.BotAPI, message tgbotapi.Chattable) {
 }
 
 //SendMessage send a simple text message
-func SendMessage(api *tgbotapi.BotAPI, update *tgbotapi.Update, text string, isReply bool) {
+func SendMessage(api *tgbotapi.BotAPI, update *tgbotapi.Update, text string, isReply bool, usePreview bool) {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
 	if isReply {
 		msg.ReplyToMessageID = update.Message.MessageID
 	}
 	msg.ParseMode = tgbotapi.ModeMarkdown
+	msg.DisableWebPagePreview = !usePreview
 	sendMessage(api, msg)
 }
 

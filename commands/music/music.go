@@ -54,7 +54,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	if response.Data.CurrentSong.ID == "" {
-		helpers.SendMessage(api, update, fmt.Sprintf("В комнате %s тихо", room), false)
+		helpers.SendMessage(api, update, fmt.Sprintf("В комнате %s тихо", room), false, true)
 		return
 	}
 
@@ -64,7 +64,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		Title: response.Data.CurrentSong.Name,
 		ID:    response.Data.CurrentSong.ID,
 	})
-	helpers.SendMessage(api, update, msg, false)
+	helpers.SendMessage(api, update, msg, false, true)
 }
 
 func init() {

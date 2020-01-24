@@ -38,7 +38,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	subscribers := templates.ExecuteTemplate("commands_subscribers", users)
 
-	helpers.SendMessage(api, update, subscribers, true)
+	helpers.SendMessage(api, update, subscribers, true, true)
 }
 
 func init() {

@@ -111,7 +111,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		} else {
 			if len(text) >= 1024 {
 				helpers.SendPhoto(api, update, attachment.Photo.URL, "", false)
-				helpers.SendMessage(api, update, text, false)
+				helpers.SendMessage(api, update, text, false, true)
 				return
 			}
 			helpers.SendPhoto(api, update, attachment.Photo.URL, text, false)
@@ -119,7 +119,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		}
 	}
 
-	helpers.SendMessage(api, update, text, false)
+	helpers.SendMessage(api, update, text, false, true)
 }
 
 func init() {

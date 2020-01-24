@@ -24,7 +24,7 @@ func generateTopic(userID string) string {
 
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if !common.IsAdmin(update.Message.From) {
-		helpers.SendMessage(api, update, "TriHard LULW", true)
+		helpers.SendMessage(api, update, "TriHard LULW", true, true)
 		return
 	}
 
@@ -61,12 +61,7 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 			if err == nil {
 				logger.Log.Info().Msg("Updated users.json")
-				helpers.SendMessage(
-					api,
-					update,
-					fmt.Sprintf("Unsubscribed from %s", channel),
-					true,
-				)
+				helpers.SendMessage(api, update, fmt.Sprintf("Unsubscribed from %s", channel), true, true)
 			} else {
 				logger.Log.Warn().Err(err).Msg("Couldn't write to users.json")
 			}

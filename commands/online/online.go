@@ -17,11 +17,11 @@ func (c *Command) UseLua() bool {
 func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	online := online_state.GetOnline()
 	if len(online) == 0 {
-		helpers.SendMessage(api, update, "Никто не стримит", false)
+		helpers.SendMessage(api, update, "Никто не стримит", false, true)
 		return
 	}
 	msg := templates.ExecuteTemplate("commands_online", online)
-	helpers.SendMessage(api, update, msg, false)
+	helpers.SendMessage(api, update, msg, false, false)
 }
 
 func init() {

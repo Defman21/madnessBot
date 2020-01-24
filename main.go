@@ -195,7 +195,7 @@ func main() {
 					msg.ParseMode = tgbotapi.ModeMarkdown
 					bot.Send(msg)
 				} else {
-					helpers.SendMessage(bot, &update, "Википедия не знает forsenKek", true)
+					helpers.SendMessage(bot, &update, "Википедия не знает forsenKek", true, true)
 				}
 			}
 		}

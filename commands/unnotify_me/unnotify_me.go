@@ -20,18 +20,13 @@ func (c *Command) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	userID, found := helpers.GetTwitchUserIDByLogin(login)
 
 	if !found {
-		helpers.SendMessage(api, update, "стример не найден", true)
+		helpers.SendMessage(api, update, "стример не найден", true, true)
 		return
 	}
 
 	notifier.Get().Remove(userID, fmt.Sprintf("@%s", userName))
 
-	helpers.SendMessage(
-		api,
-		update,
-		fmt.Sprintf("отписал тебя от оповещений %s", login),
-		true,
-	)
+	helpers.SendMessage(api, update, fmt.Sprintf("отписал тебя от оповещений %s", login), true, true)
 }
 
 func init() {
