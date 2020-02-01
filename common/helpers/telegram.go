@@ -1,7 +1,9 @@
 package helpers
 
 import (
+	"fmt"
 	"github.com/Defman21/madnessBot/common/logger"
+	"github.com/Defman21/madnessBot/config"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -9,6 +11,11 @@ func sendMessage(api *tgbotapi.BotAPI, message tgbotapi.Chattable) {
 	_, err := api.Send(message)
 	if err != nil {
 		logger.Log.Error().Err(err).Interface("msg", message).Msg("Failed to send a message")
+		msg := tgbotapi.NewMessage(config.Config.ErrorChatID, fmt.Sprintf(
+			"sendMessage error\n```\n%s\n```", err.Error()),
+		)
+		msg.ParseMode = tgbotapi.ModeMarkdown
+		_, _ = api.Send(msg)
 	}
 }
 
