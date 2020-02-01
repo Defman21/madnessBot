@@ -92,7 +92,7 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
-			name + "-1280x720.jpg?" + timestamp
+			name + "-1280x720.jpg?t=" + timestamp
 		helpers.SendPhotoChatID(api, config.Config.ChatID, url, message)
 
 		metrics.Graphite().Send(graphite.NewMetric(
