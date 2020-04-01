@@ -6,13 +6,8 @@ import (
 )
 
 func PayCheck(bot *tgbotapi.BotAPI, update *tgbotapi.Update) bool {
-	payingUsers := map[int]bool{}
-	for user := range config.Config.Payers {
-		payingUsers[user] = true
-	}
-
-	user := update.Message.From.ID
-	if _, exists := payingUsers[user]; exists {
+	user := int64(update.Message.From.ID)
+	if _, exists := config.Config.GetPayers()[user]; exists {
 		return true
 	}
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Defman21/madnessBot/boosty"
 	"github.com/Defman21/madnessBot/commands"
 	_ "github.com/Defman21/madnessBot/commands/cat"
 	_ "github.com/Defman21/madnessBot/commands/donate"
@@ -132,11 +133,18 @@ func main() {
 
 		log.Debug().Interface("update", update).Msg("Update")
 
+		chatID := update.Message.Chat.ID
+
 		if update.Message == nil {
 			continue
 		}
 
-		if update.Message.Chat.ID != config.Config.ChatID {
+		if chatID == config.Config.BoostyChatID {
+			boosty.HandleUpdate(bot, &update)
+			continue
+		}
+
+		if chatID != config.Config.ChatID && chatID != config.Config.BoostyChatID {
 			continue
 		}
 

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 )
 
 type twitchConfig struct {
@@ -63,15 +64,42 @@ type config struct {
 	Token            string          `toml:"token"`
 	Twitch           *twitchConfig   `toml:"twitch"`
 	ChatID           int64           `toml:"chat_id"`
+	BoostyChatID     int64           `toml:"boosty_chat_id"`
 	CardNumber       string          `toml:"card_number"`
 	LogLevel         string          `toml:"log_level"`
 	Graphite         *graphiteConfig `toml:"graphite"`
 	NotificationsLRU int             `toml:"notifications_lru_cache"`
-	Admins           []int           `toml:"admins"`
-	Payers           []int           `toml:"payers"`
+	Admins           map[string]bool `toml:"admins"`
+	Payers           map[string]bool `toml:"payers"`
 	News             *newsConfig     `toml:"news"`
 	Webhook          *webhookConfig  `toml:"webhook"`
 	Server           serverConfig    `toml:"server"`
+}
+
+func (c config) GetAdmins() map[int64]bool {
+	ret := map[int64]bool{}
+	for k, v := range c.Admins {
+		i, _ := strconv.ParseInt(k, 10, 64)
+		ret[i] = v
+	}
+	return ret
+}
+
+func (c config) GetPayers() map[int64]bool {
+	ret := map[int64]bool{}
+	for k, v := range c.Payers {
+		i, _ := strconv.ParseInt(k, 10, 64)
+		ret[i] = v
+	}
+	return ret
+}
+
+func (c *config) AddPayer(payerID int64) {
+	c.Payers[strconv.FormatInt(payerID, 10)] = true
+}
+
+func (c *config) RemovePayer(payerID int64) {
+	delete(c.Payers, strconv.FormatInt(payerID, 10))
 }
 
 const configName = "config.toml"
@@ -100,4 +128,21 @@ func Init() bool {
 	}
 	Initialized <- true
 	return true
+}
+
+func Save() {
+	logger.Log.Info().Str("cfg", getConfigPath()).Msg("Saving config")
+	file, err := os.OpenFile(getConfigPath(), os.O_TRUNC|os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Failed to open config file")
+	}
+	encoder := toml.NewEncoder(file)
+	err = encoder.Encode(Config)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Failed to encode config")
+	}
+	err = file.Close()
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Failed to close config file")
+	}
 }

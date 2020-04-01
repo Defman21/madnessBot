@@ -8,16 +8,11 @@ import (
 
 // IsAdmin 4Head
 func IsAdmin(user *tgbotapi.User) bool {
-	admins := map[int]bool{}
-	for _, admin := range config.Config.Admins {
-		admins[admin] = true
-	}
-
-	if _, exists := admins[user.ID]; exists {
+	if _, exists := config.Config.GetAdmins()[int64(user.ID)]; exists {
 		return true
 	}
 	logger.Log.Warn().
-		Ints("admins", config.Config.Admins).
+		Interface("admins", config.Config.Admins).
 		Int("user_id", user.ID).
 		Msg("Not an admin")
 	return false
