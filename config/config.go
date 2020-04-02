@@ -65,6 +65,7 @@ type config struct {
 	Twitch           *twitchConfig   `toml:"twitch"`
 	ChatID           int64           `toml:"chat_id"`
 	BoostyChatID     int64           `toml:"boosty_chat_id"`
+	ErrorChatID      int64           `toml:"error_chat_id"`
 	CardNumber       string          `toml:"card_number"`
 	LogLevel         string          `toml:"log_level"`
 	Graphite         *graphiteConfig `toml:"graphite"`
