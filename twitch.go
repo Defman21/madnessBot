@@ -3,17 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Defman21/madnessBot/common/helpers"
-	"github.com/Defman21/madnessBot/common/logger"
-	"github.com/Defman21/madnessBot/common/metrics"
-	"github.com/Defman21/madnessBot/common/types"
-	"github.com/Defman21/madnessBot/config"
-	"github.com/Defman21/madnessBot/online_state"
-	"github.com/Defman21/madnessBot/templates"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hashicorp/golang-lru"
 	"github.com/marpaia/graphite-golang"
 	"io/ioutil"
+	"madnessBot/common/helpers"
+	"madnessBot/common/logger"
+	"madnessBot/common/metrics"
+	"madnessBot/common/types"
+	"madnessBot/config"
+	"madnessBot/state/online"
+	"madnessBot/templates"
 	"net/http"
 	"strconv"
 	"time"
@@ -57,7 +57,7 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 				Login string
 			}{Login: name})
 			helpers.SendMessageChatID(api, config.Config.ChatID, message)
-			online_state.Push(name, false)
+			online.Add(name, false)
 			return
 		}
 
@@ -100,6 +100,7 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 			time.Now().Unix(),
 		))
 
-		online_state.Push(name, true)
+		online.Add(name, true)
+		return
 	}
 }

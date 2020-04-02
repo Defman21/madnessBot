@@ -2,10 +2,10 @@ package commands
 
 import (
 	"fmt"
-	"github.com/Defman21/madnessBot/common/logger"
-	"github.com/Defman21/madnessBot/common/metrics"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/marpaia/graphite-golang"
+	"madnessBot/common/logger"
+	"madnessBot/common/metrics"
 	"time"
 )
 

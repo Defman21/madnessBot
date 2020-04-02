@@ -1,77 +1,78 @@
 package twitch
 
 import (
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"github.com/Defman21/madnessBot/common/logger"
-	"github.com/Defman21/madnessBot/common/oauth"
-	"github.com/Defman21/madnessBot/config"
 	"github.com/parnurzeal/gorequest"
 	"io/ioutil"
+	"madnessBot/common/logger"
+	"madnessBot/config"
+	"madnessBot/redis"
 	"net/http"
 	"net/url"
-	"os"
+	"strconv"
 	"time"
 )
+
+const oauthUrl = "https://id.twitch.tv/oauth2/token"
+const redisKey = "madnessBot:state:oauth:twitch"
 
 type twitchOauth struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int    `json:"expires_in"`
+	ExpiresIn    int64  `json:"expires_in"`
 	ExpiresAt    time.Time
 }
 
-const file = "./data/twitch-state.gob"
-const oauthUrl = "https://id.twitch.tv/oauth2/token"
+var Instance = &twitchOauth{}
 
-var twitchInstance = &twitchOauth{}
+func (t twitchOauth) getRedisMap() map[string]interface{} {
+	return map[string]interface{}{
+		"access_token":  t.AccessToken,
+		"refresh_token": t.RefreshToken,
+		"expires_in":    strconv.FormatInt(t.ExpiresIn, 10),
+		"expires_at":    t.ExpiresAt.Format(time.RFC3339),
+	}
+}
 
-func init() {
-	oauth.Register("twitch", twitchInstance)
+func (t *twitchOauth) setFromRedisMap(redisMap map[string]string) {
+	t.AccessToken = redisMap["access_token"]
+	t.RefreshToken = redisMap["refresh_token"]
+	i, _ := strconv.ParseInt(redisMap["expires_in"], 10, 64)
+	t.ExpiresIn = i
+	t.ExpiresAt, _ = time.Parse(time.RFC3339, redisMap["expires_at"])
 }
 
 func (t *twitchOauth) Init() {
-	if _, err := os.Stat(file); err == nil {
-		file, err := os.OpenFile(file, os.O_RDONLY, os.ModePerm)
-		defer file.Close()
-
-		if err != nil {
-			logger.Log.Error().Err(err).Msg("Failed to load twitch state file")
-		}
-
-		dec := gob.NewDecoder(file)
-		err = dec.Decode(t)
-
-		if err != nil {
-			logger.Log.Error().Err(err).Msg("Failed to decode twitch state file")
-		}
-
-		logger.Log.Info().Interface("state", twitchInstance).Msg("Loaded twitch oauth state")
-	} else if os.IsNotExist(err) {
-		select {
-		case <-config.Initialized:
-			t.Refresh()
-		}
+	_redis := redis.Get()
+	existsInt, err := _redis.Exists(redisKey).Result()
+	if err != nil {
+		logger.Log.Error().Err(err).Str("key", redisKey).Msg("Failed to EXISTS redis key")
 	}
+
+	if existsInt == 0 {
+		t.Refresh()
+		return
+	}
+
+	redisMap, err := redis.Get().HGetAll(redisKey).Result()
+	if err != nil {
+		logger.Log.Error().Err(err).Str("key", redisKey).Msg("Failed to HGETALL redis key")
+	}
+
+	t.setFromRedisMap(redisMap)
+	logger.Log.Info().Interface("state", Instance).Msg("Loaded twitch oauth state")
 }
 
 func (t *twitchOauth) Save() {
-	file, err := os.OpenFile(file, os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	defer file.Close()
-
+	fields := t.getRedisMap()
+	_, err := redis.Get().HSet(redisKey, fields).Result()
 	if err != nil {
-		logger.Log.Error().Err(err).Msg("Failed to open twitch state file")
-		return
+		logger.Log.Error().Err(err).
+			Str("key", redisKey).
+			Fields(fields).
+			Msg("Failed to HSET redis key")
 	}
-
-	enc := gob.NewEncoder(file)
-
-	if err = enc.Encode(t); err != nil {
-		logger.Log.Error().Err(err).Msg("Failed to save twitch state file")
-		return
-	}
-
 	logger.Log.Info().Interface("state", t).Msg("Saved twitch auth state")
 }
 
@@ -91,7 +92,7 @@ func (t *twitchOauth) Authorize() {
 	req.URL.RawQuery = queryParams.Encode()
 
 	client := http.Client{
-		Timeout: time.Duration(5 * time.Second),
+		Timeout: 5 * time.Second,
 	}
 
 	resp, err := client.Do(req)
@@ -139,5 +140,5 @@ func (t *twitchOauth) AddHeaders(agent *gorequest.SuperAgent) {
 }
 
 func (t *twitchOauth) ExpiresSoon() bool {
-	return time.Now().Local().After(t.ExpiresAt)
+	return time.Now().Local().After(t.ExpiresAt.Add(-1 * 12 * time.Hour))
 }

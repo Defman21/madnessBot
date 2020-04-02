@@ -2,8 +2,8 @@ package templates
 
 import (
 	"fmt"
-	"github.com/Defman21/madnessBot/common/logger"
-	"github.com/Defman21/madnessBot/notifier"
+	"madnessBot/common/logger"
+	"madnessBot/state/notify"
 	"strings"
 	"text/template"
 )
@@ -13,7 +13,7 @@ const templatesPattern = "./templates/**/*.gotpl"
 var tpl *template.Template
 
 var templateFuncNamespaceMap = template.FuncMap{
-	"notifier": notifier.Get,
+	"NotifyGenerateString": notify.GenerateString,
 }
 
 func init() {

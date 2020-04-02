@@ -1,10 +1,10 @@
 package helpers
 
 import (
-	"github.com/Defman21/madnessBot/common/logger"
-	"github.com/Defman21/madnessBot/common/oauth"
-	"github.com/Defman21/madnessBot/common/types"
-	"github.com/Defman21/madnessBot/config"
+	"madnessBot/common/logger"
+	"madnessBot/common/oauth"
+	"madnessBot/common/types"
+	"madnessBot/config"
 )
 
 // GetTwitchUser get user by login

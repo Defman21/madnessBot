@@ -1,9 +1,9 @@
 package common
 
 import (
-	"github.com/Defman21/madnessBot/common/logger"
-	"github.com/Defman21/madnessBot/config"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"madnessBot/common/logger"
+	"madnessBot/config"
 )
 
 // IsAdmin 4Head

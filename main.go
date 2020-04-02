@@ -1,59 +1,42 @@
 package main
 
 import (
-	"fmt"
-	"github.com/Defman21/madnessBot/boosty"
-	"github.com/Defman21/madnessBot/commands"
-	_ "github.com/Defman21/madnessBot/commands/cat"
-	_ "github.com/Defman21/madnessBot/commands/donate"
-	_ "github.com/Defman21/madnessBot/commands/info"
-	_ "github.com/Defman21/madnessBot/commands/kek"
-	_ "github.com/Defman21/madnessBot/commands/me"
-	_ "github.com/Defman21/madnessBot/commands/music"
-	_ "github.com/Defman21/madnessBot/commands/news"
-	_ "github.com/Defman21/madnessBot/commands/notify_me"
-	_ "github.com/Defman21/madnessBot/commands/online"
-	_ "github.com/Defman21/madnessBot/commands/resolve"
-	_ "github.com/Defman21/madnessBot/commands/resubscribe"
-	_ "github.com/Defman21/madnessBot/commands/reverse"
-	_ "github.com/Defman21/madnessBot/commands/sarcasm"
-	_ "github.com/Defman21/madnessBot/commands/subscribe"
-	_ "github.com/Defman21/madnessBot/commands/subscribers"
-	_ "github.com/Defman21/madnessBot/commands/swap"
-	_ "github.com/Defman21/madnessBot/commands/unnotify_me"
-	_ "github.com/Defman21/madnessBot/commands/unsubscribe"
-	_ "github.com/Defman21/madnessBot/commands/up"
-	_ "github.com/Defman21/madnessBot/commands/version"
-	"github.com/Defman21/madnessBot/common/helpers"
-	"github.com/Defman21/madnessBot/common/logger"
-	"github.com/Defman21/madnessBot/common/oauth"
-	"github.com/Defman21/madnessBot/config"
-	_ "github.com/Defman21/madnessBot/templates"
+	"madnessBot/commands"
+	"madnessBot/common/helpers"
+	"madnessBot/common/logger"
+	"madnessBot/common/oauth"
+	"madnessBot/common/oauth/twitch"
+	"madnessBot/config"
+	"madnessBot/integrations/boosty"
+	"madnessBot/integrations/wiki"
+	"madnessBot/redis"
+	"madnessBot/state/resubscribe"
+	_ "madnessBot/templates"
 	"net/http"
-	"os"
 	"regexp"
 	"time"
 
-	"github.com/Defman21/madnessBot/common"
-	"github.com/Defman21/madnessBot/common/metrics"
-
-	_ "github.com/Defman21/madnessBot/common/oauth/twitch"
+	"madnessBot/common/metrics"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func init() {
-	if initialized := config.Init(); !initialized {
-		os.Exit(1)
-	}
+	go config.Init()
+	<-config.Initialized
 	logger.SetLogLevel(config.Config.LogLevel)
-	logger.Log.Info().Interface("cfg", config.Config).Msg("Initialized config")
+	logger.Log.Info().Interface("config", config.Config).Msg("Initialized config")
 }
+
+const sadCatStickerID = "CAADAgAD9wIAAlwCZQO1cgzUpY4T7wI"
 
 var log = &logger.Log
 
 func main() {
 	bot, err := tgbotapi.NewBotAPI(config.Config.Token)
+
+	redis.Init()
+	oauth.Register("twitch", twitch.Instance)
 
 	if err != nil {
 		log.Fatal().
@@ -118,16 +101,45 @@ func main() {
 
 	go http.ListenAndServe(config.Config.Server.GetBindAddress(), nil)
 
+	cmds := map[string]commands.Command{
+		"cat":         commands.CatCmd{},
+		"donate":      commands.DonateCmd{},
+		"info":        commands.InfoCmd{},
+		"kek":         commands.KekCmd{},
+		"me":          commands.MeCmd{},
+		"music":       commands.MusicCmd{},
+		"news":        commands.NewsCmd{},
+		"notify_me":   commands.NotifyMeCmd{},
+		"online":      commands.OnlineCmd{},
+		"resolve":     commands.ResolveCmd{},
+		"r":           commands.ResolveCmd{},
+		"resubscribe": commands.ResubscribeCmd{},
+		"reverse":     commands.ReverseCmd{},
+		"sarcasm":     commands.SarcasmCmd{},
+		"subscribe":   commands.SubscribeCmd{},
+		"subscribers": commands.SubscribersCmd{},
+		"swap":        commands.SwapCmd{},
+		"fuck":        commands.SwapCmd{},
+		"unnotify_me": commands.UnnotifyMeCmd{},
+		"unsubscribe": commands.UnsubscribeCmd{},
+		"up":          commands.UpCmd{},
+		"version":     commands.VersionCmd{},
+	}
+
+	for name, handler := range cmds {
+		commands.Register(name, handler)
+		log.Info().Str("command", name).Msg("Registered command")
+	}
+
 	sleepRegex := regexp.MustCompile(`(?i)\Aя\s+спать`)
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
 	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^?]+)`)
 
-	go common.ResubscribeState.Load()
-
 	for update := range updates {
 		oauth.RefreshExpired()
 
-		if time.Now().Local().After(common.ResubscribeState.ExpiresAt) {
+		nextResubscribeCall := resubscribe.GetState()
+		if nextResubscribeCall != nil && time.Now().Local().After(*nextResubscribeCall) {
 			go commands.Run("resubscribe", bot, &update)
 		}
 
@@ -151,60 +163,12 @@ func main() {
 		commandName := update.Message.Command()
 		if ran := commands.Run(commandName, bot, &update); !ran {
 			if sleepRegex.MatchString(update.Message.Text) {
-				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Споки <3"))
-				commands.Run("cat", bot, &update)
+				helpers.SendMessage(bot, &update, "Споки <3", true, false)
+				go commands.Run("cat", bot, &update)
 			} else if sadRegex.MatchString(update.Message.Text) {
-				msg := tgbotapi.NewStickerShare(update.Message.Chat.ID,
-					"CAADAgAD9wIAAlwCZQO1cgzUpY4T7wI")
-				bot.Send(msg)
+				helpers.SendSticker(bot, &update, sadCatStickerID, false)
 			} else if lookup := wikiRegex.FindStringSubmatch(update.Message.Text); lookup != nil {
-				type response struct {
-					Query struct {
-						Pages []struct {
-							Title   string `json:"title"`
-							Extract string `json:"extract"`
-						} `json:"pages"`
-					} `json:"query"`
-				}
-				var data response
-
-				req := helpers.Request.Get("https://ru.wikipedia.org/w/api.php").
-					Set("User-Agent", "madnessBot (https://defman.me; me@defman.me) gorequest").
-					Query(
-						struct {
-							Action        string
-							Titles        string
-							Prop          string
-							Explaintext   bool
-							Exintro       bool
-							Format        string
-							Formatversion int
-							Redirects     int
-						}{
-							Action:        "query",
-							Titles:        lookup[1],
-							Prop:          "extracts",
-							Explaintext:   true,
-							Exintro:       true,
-							Format:        "json",
-							Formatversion: 2,
-							Redirects:     1,
-						},
-					)
-
-				_, _, errs := req.EndStruct(&data)
-				if errs != nil {
-					log.Warn().Errs("errs", errs).Msg("Wikipedia lookup")
-					continue
-				}
-				if len(data.Query.Pages) != 0 && len(data.Query.Pages[0].Extract) != 0 {
-					page := data.Query.Pages[0]
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("[%v](https://ru.wikipedia.org/wiki/%v) - %v\n", page.Title, page.Title, page.Extract))
-					msg.ParseMode = tgbotapi.ModeMarkdown
-					bot.Send(msg)
-				} else {
-					helpers.SendMessage(bot, &update, "Википедия не знает forsenKek", true, true)
-				}
+				wiki.HandleUpdate(bot, &update, lookup)
 			}
 		}
 	}

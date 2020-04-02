@@ -1,9 +1,9 @@
 package metrics
 
 import (
-	"github.com/Defman21/madnessBot/common/logger"
-	"github.com/Defman21/madnessBot/config"
 	"github.com/marpaia/graphite-golang"
+	"madnessBot/common/logger"
+	"madnessBot/config"
 )
 
 type GraphiteMetric struct {

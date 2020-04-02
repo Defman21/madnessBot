@@ -1,8 +1,8 @@
 package oauth
 
 import (
-	"github.com/Defman21/madnessBot/common/logger"
 	"github.com/parnurzeal/gorequest"
+	"madnessBot/common/logger"
 )
 
 type Interface interface {
@@ -16,7 +16,8 @@ var providers = make(map[string]Interface)
 
 func Register(name string, instance Interface) {
 	providers[name] = instance
-	go instance.Init()
+	instance.Init()
+	logger.Log.Info().Str("name", name).Msg("Registered OAuth handler")
 }
 
 func Get(name string) Interface {

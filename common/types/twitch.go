@@ -57,4 +57,3 @@ type TwitchWebHookNotification struct {
 type TwitchWebHookNotificationRequest struct {
 	Data []TwitchWebHookNotification `json:"data"`
 }
-

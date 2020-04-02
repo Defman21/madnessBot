@@ -2,4 +2,4 @@
 {{.Title}}
 Сморков: {{.Viewers}}
 Игра: {{.Game}}
-{{notifier.GenerateNotifyString .UserID}}
+{{NotifyGenerateString .UserID}}
