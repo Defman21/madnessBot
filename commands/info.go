@@ -26,6 +26,10 @@ type commandTemplate struct {
 }
 
 func (c InfoCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	if !helpers.PayCheck(api, update) {
+		return
+	}
+
 	channel := update.Message.CommandArguments()
 
 	if channel == "" {
