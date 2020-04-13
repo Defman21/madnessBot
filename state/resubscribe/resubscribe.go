@@ -32,7 +32,7 @@ func GetState() *time.Time {
 
 	if timestamp <= 0 {
 		logger.Log.Warn().Str("key", redisKey).Msg("Redis key expired")
-		return nil
+		timestamp = -1 * time.Second
 	}
 
 	after := time.Now().Local().Add(timestamp)
