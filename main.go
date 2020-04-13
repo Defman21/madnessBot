@@ -145,11 +145,11 @@ func main() {
 
 		log.Debug().Interface("update", update).Msg("Update")
 
-		chatID := update.Message.Chat.ID
-
 		if update.Message == nil {
 			continue
 		}
+
+		chatID := update.Message.Chat.ID
 
 		if chatID == config.Config.BoostyChatID {
 			boosty.HandleUpdate(bot, &update)
