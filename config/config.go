@@ -82,6 +82,7 @@ type config struct {
 	Webhook          *webhookConfig  `yaml:"webhook"`
 	Server           serverConfig    `yaml:"server"`
 	Redis            *redisConfig    `yaml:"redis"`
+	MessageThreshold int64           `yaml:"message_threshold"`
 }
 
 func (c config) GetAdmins() map[int64]bool {
