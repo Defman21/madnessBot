@@ -38,6 +38,8 @@ func main() {
 	redis.Init()
 	oauth.Register("twitch", twitch.Instance)
 
+	redisInstance := redis.Get()
+
 	if err != nil {
 		log.Fatal().
 			Err(err).
@@ -102,28 +104,29 @@ func main() {
 	go http.ListenAndServe(config.Config.Server.GetBindAddress(), nil)
 
 	cmds := map[string]commands.Command{
-		"cat":         commands.CatCmd{},
-		"donate":      commands.DonateCmd{},
-		"info":        commands.InfoCmd{},
-		"kek":         commands.KekCmd{},
-		"me":          commands.MeCmd{},
-		"music":       commands.MusicCmd{},
-		"news":        commands.NewsCmd{},
-		"notify_me":   commands.NotifyMeCmd{},
-		"online":      commands.OnlineCmd{},
-		"resolve":     commands.ResolveCmd{},
-		"r":           commands.ResolveCmd{},
-		"resubscribe": commands.ResubscribeCmd{},
-		"reverse":     commands.ReverseCmd{},
-		"sarcasm":     commands.SarcasmCmd{},
-		"subscribe":   commands.SubscribeCmd{},
-		"subscribers": commands.SubscribersCmd{},
-		"swap":        commands.SwapCmd{},
-		"fuck":        commands.SwapCmd{},
-		"unnotify_me": commands.UnnotifyMeCmd{},
-		"unsubscribe": commands.UnsubscribeCmd{},
-		"up":          commands.UpCmd{},
-		"version":     commands.VersionCmd{},
+		"cat":           commands.CatCmd{},
+		"donate":        commands.DonateCmd{},
+		"info":          commands.InfoCmd{},
+		"kek":           commands.KekCmd{},
+		"me":            commands.MeCmd{},
+		"music":         commands.MusicCmd{},
+		"news":          commands.NewsCmd{},
+		"notify_me":     commands.NotifyMeCmd{},
+		"online":        commands.OnlineCmd{},
+		"resolve":       commands.ResolveCmd{},
+		"r":             commands.ResolveCmd{},
+		"resubscribe":   commands.ResubscribeCmd{},
+		"reverse":       commands.ReverseCmd{},
+		"sarcasm":       commands.SarcasmCmd{},
+		"subscribe":     commands.SubscribeCmd{},
+		"subscribers":   commands.SubscribersCmd{},
+		"swap":          commands.SwapCmd{},
+		"fuck":          commands.SwapCmd{},
+		"unnotify_me":   commands.UnnotifyMeCmd{},
+		"unsubscribe":   commands.UnsubscribeCmd{},
+		"up":            commands.UpCmd{},
+		"version":       commands.VersionCmd{},
+		"message_count": commands.MessageCounterCmd{},
 	}
 
 	for name, handler := range cmds {
@@ -158,6 +161,11 @@ func main() {
 
 		if chatID != config.Config.ChatID && chatID != config.Config.BoostyChatID {
 			continue
+		}
+
+		err := redisInstance.Incr("madnessBot:messageCounter").Err()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to increase message counter")
 		}
 
 		commandName := update.Message.Command()
