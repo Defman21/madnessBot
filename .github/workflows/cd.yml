@@ -15,11 +15,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Publish Docker
-      uses: elgohr/Publish-Docker-Github-Action@2.14
+      uses: elgohr/Publish-Docker-Github-Action@2.19
       with:
         name: bots/madness
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         registry: registry.defman.me
         cache: ${{ github.event_name != 'schedule' }}
-        tags: "latest,v3"
+        tags: "latest"
