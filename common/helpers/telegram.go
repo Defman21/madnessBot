@@ -6,6 +6,7 @@ import (
 	"madnessBot/common/logger"
 	"madnessBot/config"
 	"runtime/debug"
+	"strings"
 )
 
 func SendMessageStruct(api *tgbotapi.BotAPI, message tgbotapi.Chattable) {
@@ -15,7 +16,7 @@ func SendMessageStruct(api *tgbotapi.BotAPI, message tgbotapi.Chattable) {
 		msg := tgbotapi.NewMessage(config.Config.ErrorChatID, fmt.Sprintf(
 			"SendMessageStruct error\n```\n%s\n%v\n%s\n```", err.Error(), message, debug.Stack()),
 		)
-		msg.ParseMode = tgbotapi.ModeMarkdown
+		msg.ParseMode = tgbotapi.ModeMarkdownV2
 		_, _ = api.Send(msg)
 	}
 }
@@ -26,7 +27,7 @@ func SendMessage(api *tgbotapi.BotAPI, update *tgbotapi.Update, text string, isR
 	if isReply {
 		msg.ReplyToMessageID = update.Message.MessageID
 	}
-	msg.ParseMode = tgbotapi.ModeMarkdown
+	msg.ParseMode = tgbotapi.ModeMarkdownV2
 	msg.DisableWebPagePreview = !usePreview
 	SendMessageStruct(api, msg)
 }
@@ -34,7 +35,7 @@ func SendMessage(api *tgbotapi.BotAPI, update *tgbotapi.Update, text string, isR
 //SendMessageChatID sends a message by chat id
 func SendMessageChatID(api *tgbotapi.BotAPI, chatID int64, text string) {
 	msg := tgbotapi.NewMessage(chatID, text)
-	msg.ParseMode = tgbotapi.ModeMarkdown
+	msg.ParseMode = tgbotapi.ModeMarkdownV2
 	SendMessageStruct(api, msg)
 }
 
@@ -47,7 +48,7 @@ func SendPhoto(api *tgbotapi.BotAPI, update *tgbotapi.Update, photoURL string, c
 	if isReply {
 		photo.ReplyToMessageID = update.Message.MessageID
 	}
-	photo.ParseMode = tgbotapi.ModeMarkdown
+	photo.ParseMode = tgbotapi.ModeMarkdownV2
 	SendMessageStruct(api, photo)
 }
 
@@ -57,7 +58,7 @@ func SendPhotoChatID(api *tgbotapi.BotAPI, chatID int64, photoURL string, captio
 	photo.FileID = photoURL
 	photo.UseExisting = true
 	photo.Caption = caption
-	photo.ParseMode = tgbotapi.ModeMarkdown
+	photo.ParseMode = tgbotapi.ModeMarkdownV2
 	SendMessageStruct(api, photo)
 }
 
@@ -76,4 +77,15 @@ func SendSticker(api *tgbotapi.BotAPI, update *tgbotapi.Update, stickerID string
 		msg.ReplyToMessageID = update.Message.MessageID
 	}
 	SendMessageStruct(api, msg)
+}
+
+func EscapeMarkdownV2(text string) string {
+	res := text
+	escapeMap := []string{
+		`\`, "_", "*", "[", "]", "(", ")", "~", "`", ">", "#", "+", "-", "=", "|", "{", "}", ".", "!",
+	}
+	for _, ch := range escapeMap {
+		res = strings.ReplaceAll(res, ch, `\`+ch)
+	}
+	return res
 }

@@ -19,5 +19,5 @@ func (c VersionCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	commit, _ := exec.Command("git", "show", "-s").Output()
-	helpers.SendMessage(api, update, string(commit), true, false)
+	helpers.SendMessage(api, update, helpers.EscapeMarkdownV2(string(commit)), true, false)
 }

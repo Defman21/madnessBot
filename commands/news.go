@@ -95,7 +95,7 @@ func (c NewsCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	loc, _ := time.LoadLocation("Europe/Moscow")
-	postTime := time.Unix(data.Response.Items[0].Date, 0).In(loc).Format("02.01 15:04")
+	postTime := time.Unix(data.Response.Items[0].Date, 0).In(loc).Format("02\\.01 15:04")
 
 	text := templates.ExecuteTemplate("commands_news", newsCmdTemplate{
 		Text:    data.Response.Items[0].Text,

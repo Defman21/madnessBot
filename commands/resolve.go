@@ -2,6 +2,7 @@ package commands
 
 import (
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"madnessBot/common/helpers"
 	"math/rand"
 	"strings"
 	"time"
@@ -28,7 +29,8 @@ func (c ResolveCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		choice = choices[random.Intn(len(choices))]
 	}
 
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, choice)
+	msg := tgbotapi.NewMessage(update.Message.Chat.ID, helpers.EscapeMarkdownV2(choice))
+	msg.ParseMode = tgbotapi.ModeMarkdownV2
 	msg.ReplyToMessageID = update.Message.MessageID
 
 	_, _ = api.Send(msg)

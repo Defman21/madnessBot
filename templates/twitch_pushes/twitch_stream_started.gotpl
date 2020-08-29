@@ -1,5 +1,5 @@
-[{{.Login}}](https://twitch.tv/{{.Login}}) завел подрубочку!
-{{.Title}}
+[{{.Login}}](https://twitch.tv/{{.Login}}) завел подрубочку\!
+{{Escape .Title}}
 Сморков: {{.Viewers}}
-Игра: {{.Game}}
+Игра: {{Escape .Game}}
 {{NotifyGenerateString .UserID}}

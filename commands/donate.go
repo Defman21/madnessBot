@@ -13,5 +13,5 @@ func (c DonateCmd) UseLua() bool {
 }
 
 func (c DonateCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
-	helpers.SendMessage(api, update, config.Config.BoostyLink, true, true)
+	helpers.SendMessage(api, update, helpers.EscapeMarkdownV2(config.Config.BoostyLink), true, true)
 }

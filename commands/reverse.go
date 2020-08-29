@@ -12,6 +12,10 @@ func (c ReverseCmd) UseLua() bool {
 }
 
 func (c ReverseCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
+	if update.Message.ReplyToMessage == nil {
+		helpers.SendInvalidArgumentsMessage(api, update)
+		return
+	}
 	text := update.Message.ReplyToMessage.Text
 	r := []rune(text)
 
@@ -19,5 +23,5 @@ func (c ReverseCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		r[i], r[j] = r[j], r[i]
 	}
 
-	helpers.SendMessage(api, update, string(r), true, false)
+	helpers.SendMessage(api, update, helpers.EscapeMarkdownV2(string(r)), true, false)
 }

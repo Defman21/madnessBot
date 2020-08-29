@@ -96,7 +96,7 @@ func (c InfoCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			Type:      "photo",
 			Media:     url,
 			Caption:   msg,
-			ParseMode: tgbotapi.ModeMarkdown,
+			ParseMode: tgbotapi.ModeMarkdownV2,
 		}
 	} else {
 		msg := templates.ExecuteTemplate("commands_info", infoCommand)
@@ -104,7 +104,7 @@ func (c InfoCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			Type:      "photo",
 			Media:     "https://i.redd.it/07onk217ojfz.png",
 			Caption:   msg,
-			ParseMode: tgbotapi.ModeMarkdown,
+			ParseMode: tgbotapi.ModeMarkdownV2,
 		}
 	}
 

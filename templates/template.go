@@ -2,6 +2,7 @@ package templates
 
 import (
 	"fmt"
+	"madnessBot/common/helpers"
 	"madnessBot/common/logger"
 	"madnessBot/state/notify"
 	"strings"
@@ -14,6 +15,7 @@ var tpl *template.Template
 
 var templateFuncNamespaceMap = template.FuncMap{
 	"NotifyGenerateString": notify.GenerateString,
+	"Escape":               helpers.EscapeMarkdownV2,
 }
 
 func init() {

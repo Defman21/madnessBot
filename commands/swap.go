@@ -48,6 +48,10 @@ func (c SwapCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		'.':  'ю',
 		'/':  '.',
 	}
+	if update.Message.ReplyToMessage == nil {
+		helpers.SendInvalidArgumentsMessage(api, update)
+		return
+	}
 	text := update.Message.ReplyToMessage.Text
 	fucked := []rune(strings.ToLower(text))
 	for i, char := range fucked {
@@ -59,5 +63,5 @@ func (c SwapCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		}
 	}
 
-	helpers.SendMessage(api, update, string(fucked), true, false)
+	helpers.SendMessage(api, update, helpers.EscapeMarkdownV2(string(fucked)), true, false)
 }

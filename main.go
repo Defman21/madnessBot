@@ -105,12 +105,12 @@ func main() {
 	go http.ListenAndServe(config.Config.Server.GetBindAddress(), nil)
 
 	cmds := map[string]commands.Command{
-		"cat":           commands.CatCmd{},
-		"donate":        commands.DonateCmd{},
-		"info":          commands.InfoCmd{},
-		"kek":           commands.KekCmd{},
-		"me":            commands.MeCmd{},
-		"music":         commands.MusicCmd{},
+		"cat":    commands.CatCmd{},
+		"donate": commands.DonateCmd{},
+		"info":   commands.InfoCmd{},
+		"kek":    commands.KekCmd{},
+		"me":     commands.MeCmd{},
+		//"music":         commands.MusicCmd{},
 		"news":          commands.NewsCmd{},
 		"notify_me":     commands.NotifyMeCmd{},
 		"online":        commands.OnlineCmd{},
@@ -121,6 +121,7 @@ func main() {
 		"sarcasm":       commands.SarcasmCmd{},
 		"subscribe":     commands.SubscribeCmd{},
 		"subscribers":   commands.SubscribersCmd{},
+		"subs":          commands.SubscribersCmd{},
 		"swap":          commands.SwapCmd{},
 		"fuck":          commands.SwapCmd{},
 		"unnotify_me":   commands.UnnotifyMeCmd{},
