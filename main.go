@@ -118,7 +118,6 @@ func main() {
 		"r":             commands.ResolveCmd{},
 		"resubscribe":   commands.ResubscribeCmd{},
 		"reverse":       commands.ReverseCmd{},
-		"sarcasm":       commands.SarcasmCmd{},
 		"subscribe":     commands.SubscribeCmd{},
 		"subscribers":   commands.SubscribersCmd{},
 		"subs":          commands.SubscribersCmd{},
