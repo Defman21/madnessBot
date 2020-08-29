@@ -53,13 +53,13 @@ func HandleUpdate(api *tgbotapi.BotAPI, update *tgbotapi.Update, regexMatch []st
 	if len(data.Query.Pages) != 0 && len(data.Query.Pages[0].Extract) != 0 {
 		page := data.Query.Pages[0]
 		text = fmt.Sprintf(
-			"[%v](https://ru.wikipedia.org/wiki/%v) - %v\n",
-			page.Title,
-			page.Title,
-			page.Extract,
+			"[%v](https://ru.wikipedia.org/wiki/%v)\n%v\n",
+			helpers.EscapeMarkdownV2(page.Title),
+			url.QueryEscape(page.Title),
+			helpers.EscapeMarkdownV2(page.Extract),
 		)
 	} else {
-		text = fmt.Sprintf("Вики не знает. [В гугл!](https://lmgtfy.com/?q=%s)", url.QueryEscape(regexMatch[1]))
+		text = fmt.Sprintf("Вики не знает\\. [В гугл\\!](https://lmgtfy.com/?q=%s)", url.QueryEscape(regexMatch[1]))
 	}
 	helpers.SendMessage(api, update, text, true, true)
 }

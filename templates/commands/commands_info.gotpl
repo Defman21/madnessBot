@@ -1,8 +1,8 @@
 {{if .Online}}
-[{{.Login}}](https://twitch.tv/{{.Login}}) сейчас онлайн\!
+[{{Escape .Login}}](https://twitch.tv/{{.Login}}) сейчас онлайн\!
 {{Escape .Title}}
 Сморков: {{.Viewers}}
 Игра: {{Escape .Game}}
 {{else}}
-[{{.Login}}](https://twitch.tv/{{.Login}}) ничего не стримит\.
+[{{Escape .Login}}](https://twitch.tv/{{.Login}}) ничего не стримит\.
 {{end}}

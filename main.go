@@ -189,7 +189,7 @@ func main() {
 		commandName := update.Message.Command()
 		if ran := commands.Run(commandName, bot, &update); !ran {
 			if sleepRegex.MatchString(update.Message.Text) {
-				helpers.SendMessage(bot, &update, "Споки <3", true, false)
+				helpers.SendMessage(bot, &update, helpers.EscapeMarkdownV2("Споки <3"), true, false)
 				go commands.Run("cat", bot, &update)
 			} else if sadRegex.MatchString(update.Message.Text) {
 				helpers.SendSticker(bot, &update, sadCatStickerID, false)

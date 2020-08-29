@@ -1,1 +1,1 @@
-[{{.Login}}](https://twitch.tv/{{.Login}}) закончил стрим\.
+[{{Escape .Login}}](https://twitch.tv/{{.Login}}) закончил стрим\.

@@ -1,4 +1,4 @@
-[{{.Login}}](https://twitch.tv/{{.Login}}) завел подрубочку\!
+[{{Escape .Login}}](https://twitch.tv/{{.Login}}) завел подрубочку\!
 {{Escape .Title}}
 Сморков: {{.Viewers}}
 Игра: {{Escape .Game}}
