@@ -48,8 +48,8 @@ func (c SubscribeCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		helpers.SendMessage(
 			api,
 			update,
-			fmt.Sprintf("Бот теперь аки маньяк будет преследовать %s "+
-				"до конца своих дней.", channel), true, true,
+			helpers.EscapeMarkdownV2(fmt.Sprintf("Бот теперь аки маньяк будет преследовать %s "+
+				"до конца своих дней.", channel)), true, true,
 		)
 	}
 }
