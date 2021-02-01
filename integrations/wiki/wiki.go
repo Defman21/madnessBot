@@ -69,7 +69,10 @@ func HandleUpdate(api *tgbotapi.BotAPI, update *tgbotapi.Update, regexMatch []st
 			helpers.EscapeMarkdownV2(page.Extract),
 		)
 	} else {
-		text = fmt.Sprintf("Вики не знает\\. [В гугл\\!](https://lmgtfy.com/?q=%s)", url.QueryEscape(regexMatch[1]))
+		text = fmt.Sprintf(
+			"Вики не знает\\. [В гугл\\!](https://google.com/search?q=%s)",
+			url.QueryEscape(queryTerm),
+		)
 	}
 	helpers.SendMessage(api, update, text, true, true)
 }
