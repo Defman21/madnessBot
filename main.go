@@ -102,6 +102,7 @@ func main() {
 		log.Info().Msg("Twitch integration is disabled")
 	}
 
+	//goland:noinspection GoUnhandledErrorResult
 	go http.ListenAndServe(config.Config.Server.GetBindAddress(), nil)
 
 	cmds := map[string]commands.Command{
