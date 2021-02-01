@@ -9,6 +9,16 @@ import (
 )
 
 func HandleUpdate(api *tgbotapi.BotAPI, update *tgbotapi.Update, regexMatch []string) {
+	queryTerm := regexMatch[1]
+
+	if len(queryTerm) == 0 {
+		if update.Message.ReplyToMessage == nil {
+			return
+		}
+
+		queryTerm = update.Message.ReplyToMessage.Text
+	}
+
 	type response struct {
 		Query struct {
 			Pages []struct {
@@ -33,7 +43,7 @@ func HandleUpdate(api *tgbotapi.BotAPI, update *tgbotapi.Update, regexMatch []st
 				Redirects     int
 			}{
 				Action:        "query",
-				Titles:        regexMatch[1],
+				Titles:        queryTerm,
 				Prop:          "extracts",
 				Explaintext:   true,
 				Exintro:       true,

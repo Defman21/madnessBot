@@ -137,7 +137,7 @@ func main() {
 
 	sleepRegex := regexp.MustCompile(`(?i)\Aя\s+спать`)
 	sadRegex := regexp.MustCompile(`(?i)\Aя\s+обидел(?:ась|ся)`)
-	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая) ([^?]+)`)
+	wikiRegex := regexp.MustCompile(`(?i)^(?:что|кто) так(?:ое|ой|ая)\s*([^?]+)?`)
 
 	for update := range updates {
 		oauth.RefreshExpired()
