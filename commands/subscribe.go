@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/nicklaw5/helix/v2"
@@ -31,7 +32,7 @@ func (c SubscribeCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			return
 		}
 
-		_, err := redis.Get().HSet(redisKey, channel, userID).Result()
+		_, err := redis.Get().HSet(context.Background(), redisKey, channel, userID).Result()
 
 		if err != nil {
 			log.Error().Err(err).

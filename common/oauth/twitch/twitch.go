@@ -1,6 +1,7 @@
 package twitch
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/parnurzeal/gorequest"
@@ -46,7 +47,7 @@ func (t *twitchOauth) setFromRedisMap(redisMap map[string]string) {
 
 func (t *twitchOauth) Init() {
 	_redis := redis.Get()
-	existsInt, err := _redis.Exists(redisKey).Result()
+	existsInt, err := _redis.Exists(context.Background(), redisKey).Result()
 	if err != nil {
 		logger.Log.Error().Err(err).Str("key", redisKey).Msg("Failed to EXISTS redis key")
 	}
@@ -56,7 +57,7 @@ func (t *twitchOauth) Init() {
 		return
 	}
 
-	redisMap, err := redis.Get().HGetAll(redisKey).Result()
+	redisMap, err := redis.Get().HGetAll(context.Background(), redisKey).Result()
 	if err != nil {
 		logger.Log.Error().Err(err).Str("key", redisKey).Msg("Failed to HGETALL redis key")
 	}
@@ -67,7 +68,7 @@ func (t *twitchOauth) Init() {
 
 func (t *twitchOauth) Save() {
 	fields := t.getRedisMap()
-	_, err := redis.Get().HSet(redisKey, fields).Result()
+	_, err := redis.Get().HSet(context.Background(), redisKey, fields).Result()
 	if err != nil {
 		logger.Log.Error().Err(err).
 			Str("key", redisKey).

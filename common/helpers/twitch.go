@@ -71,7 +71,7 @@ func GetTwitchStreamByLogin(login string) (stream *helix.Stream, err error) {
 		return nil, err
 	}
 
-	if streams.Data.Streams == nil {
+	if len(streams.Data.Streams) == 0 {
 		return nil, nil
 	}
 

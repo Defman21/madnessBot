@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"madnessBot/common"
@@ -44,7 +45,7 @@ func (c UnsubscribeCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 			logger.Log.Info().Str("user", channel).Msg("Unsubscribed")
 
-			_, err := redis.Get().HDel(redisKey, channel).Result()
+			_, err := redis.Get().HDel(context.Background(), redisKey, channel).Result()
 			if err != nil {
 				logger.Log.Error().Err(err).
 					Str("key", redisKey).
