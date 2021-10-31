@@ -1,9 +1,12 @@
 package helpers
 
 import (
+	"context"
+	"fmt"
 	"github.com/nicklaw5/helix/v2"
 	"madnessBot/common/logger"
 	"madnessBot/config"
+	"madnessBot/redis"
 )
 
 // GetTwitchUser get user by login
@@ -33,7 +36,7 @@ func GetTwitchUserIDByLogin(login string) (string, bool) {
 }
 
 //SendEventSubMessage sends a message to the Twitch Hub
-func SendEventSubMessage(channel string, eventType string) error {
+func SendEventSubMessage(channel, eventType string) error {
 	broadcasterID, success := GetTwitchUserIDByLogin(channel)
 	if !success {
 		return nil
@@ -56,6 +59,32 @@ func SendEventSubMessage(channel string, eventType string) error {
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("Failed to send EventSub request")
 		return err
+	}
+
+	return nil
+}
+
+//UnsubscribeFromEventSub unsubscribes from event
+func UnsubscribeFromEventSub(channel, eventType string) error {
+	subKey := fmt.Sprintf("%s:%s", channel, eventType)
+	subId, err := redis.Get().HGet(context.Background(), redis.HelixSubscriptionsKey, subKey).Result()
+	if err != nil {
+		return err
+	}
+
+	_, err = config.Config.Twitch.Client().RemoveEventSubSubscription(subId)
+	if err != nil {
+		return err
+	}
+
+	n, err := redis.Get().HDel(context.Background(), redis.HelixSubscriptionsKey, subKey).Result()
+
+	if err != nil {
+		return err
+	}
+
+	if n != 1 {
+		logger.Log.Warn().Int64("affected", n).Msg("too much affected redis keys")
 	}
 
 	return nil

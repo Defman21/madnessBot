@@ -16,7 +16,6 @@ import (
 )
 
 const oauthUrl = "https://id.twitch.tv/oauth2/token"
-const redisKey = "madnessBot:state:oauth:twitch"
 
 type twitchOauth struct {
 	AccessToken  string `json:"access_token"`
@@ -47,9 +46,9 @@ func (t *twitchOauth) setFromRedisMap(redisMap map[string]string) {
 
 func (t *twitchOauth) Init() {
 	_redis := redis.Get()
-	existsInt, err := _redis.Exists(context.Background(), redisKey).Result()
+	existsInt, err := _redis.Exists(context.Background(), redis.OauthTwitchKey).Result()
 	if err != nil {
-		logger.Log.Error().Err(err).Str("key", redisKey).Msg("Failed to EXISTS redis key")
+		logger.Log.Error().Err(err).Str("key", redis.OauthTwitchKey).Msg("Failed to EXISTS redis key")
 	}
 
 	if existsInt == 0 {
@@ -57,9 +56,9 @@ func (t *twitchOauth) Init() {
 		return
 	}
 
-	redisMap, err := redis.Get().HGetAll(context.Background(), redisKey).Result()
+	redisMap, err := redis.Get().HGetAll(context.Background(), redis.OauthTwitchKey).Result()
 	if err != nil {
-		logger.Log.Error().Err(err).Str("key", redisKey).Msg("Failed to HGETALL redis key")
+		logger.Log.Error().Err(err).Str("key", redis.OauthTwitchKey).Msg("Failed to HGETALL redis key")
 	}
 
 	t.setFromRedisMap(redisMap)
@@ -68,10 +67,10 @@ func (t *twitchOauth) Init() {
 
 func (t *twitchOauth) Save() {
 	fields := t.getRedisMap()
-	_, err := redis.Get().HSet(context.Background(), redisKey, fields).Result()
+	_, err := redis.Get().HSet(context.Background(), redis.OauthTwitchKey, fields).Result()
 	if err != nil {
 		logger.Log.Error().Err(err).
-			Str("key", redisKey).
+			Str("key", redis.OauthTwitchKey).
 			Fields(fields).
 			Msg("Failed to HSET redis key")
 	}

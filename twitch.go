@@ -42,8 +42,6 @@ type eventSubNotification struct {
 	Event        json.RawMessage            `json:"event"`
 }
 
-const redisHelixSubsKey = "madnessBot:state:helix-subscriptions"
-
 func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		channel := r.URL.Path[len(config.Config.Twitch.Webhook.Path):]
@@ -74,7 +72,7 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 
 		subKey := fmt.Sprintf("%s:%s", channel, vals.Subscription.Type)
 		subID := vals.Subscription.ID
-		_, err = redis.Get().HSet(context.Background(), redisHelixSubsKey, subKey, subID).Result()
+		_, err = redis.Get().HSet(context.Background(), redis.HelixSubscriptionsKey, subKey, subID).Result()
 
 		if err != nil {
 			logger.Log.Error().Err(err).Str("channel", channel).Str("subscription-id",

@@ -11,8 +11,6 @@ import (
 	"madnessBot/redis"
 )
 
-const redisKey = "madnessBot:state:subscriptions"
-
 type SubscribeCmd struct{}
 
 func (c SubscribeCmd) UseLua() bool {
@@ -32,11 +30,11 @@ func (c SubscribeCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 			return
 		}
 
-		_, err := redis.Get().HSet(context.Background(), redisKey, channel, userID).Result()
+		_, err := redis.Get().HSet(context.Background(), redis.SubscriptionsKey, channel, userID).Result()
 
 		if err != nil {
 			log.Error().Err(err).
-				Str("key", redisKey).
+				Str("key", redis.SubscriptionsKey).
 				Str("field", channel).
 				Str("value", userID).
 				Msg("Failed to HSET redis key")
