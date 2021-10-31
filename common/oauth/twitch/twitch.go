@@ -41,6 +41,7 @@ func (t *twitchOauth) setFromRedisMap(redisMap map[string]string) {
 	i, _ := strconv.ParseInt(redisMap["expires_in"], 10, 64)
 	t.ExpiresIn = i
 	t.ExpiresAt, _ = time.Parse(time.RFC3339, redisMap["expires_at"])
+	config.Config.Twitch.Client().SetAppAccessToken(t.AccessToken)
 }
 
 func (t *twitchOauth) Init() {

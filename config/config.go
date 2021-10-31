@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/nicklaw5/helix/v2"
 	"gopkg.in/yaml.v3"
 	"madnessBot/common/logger"
 	"net/url"
@@ -17,6 +18,22 @@ type twitchConfig struct {
 	ClientSecret string        `yaml:"client_secret"`
 	Webhook      webhookConfig `yaml:"webhook"`
 	Enabled      bool          `yaml:"enabled"`
+	_client      *helix.Client
+}
+
+func (tc *twitchConfig) Client() *helix.Client {
+	if tc._client == nil {
+		var err error
+		tc._client, err = helix.NewClient(&helix.Options{
+			ClientID:     tc.ClientID,
+			ClientSecret: tc.ClientSecret,
+		})
+		if err != nil {
+			logger.Log.Error().Err(err).Msg("failed to initialize twitch client")
+			os.Exit(1)
+		}
+	}
+	return tc._client
 }
 
 type graphiteConfig struct {
@@ -35,6 +52,7 @@ type webhookConfig struct {
 	Enable bool   `yaml:"enabled"`
 	URL    string `yaml:"url"`
 	Path   string `yaml:"path"`
+	Secret string `yaml:"secret"`
 }
 
 func (cfg webhookConfig) GetURL(paths ...string) string {

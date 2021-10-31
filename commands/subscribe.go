@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/nicklaw5/helix/v2"
 	"github.com/rs/zerolog/log"
 	"madnessBot/common/helpers"
 	"madnessBot/common/logger"
@@ -17,10 +18,6 @@ func (c SubscribeCmd) UseLua() bool {
 	return false
 }
 
-func generateSubscribeTopic(userID string) string {
-	return fmt.Sprintf("https://api.twitch.tv/helix/streams?user_id=%s", userID)
-}
-
 func (c SubscribeCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	channel := update.Message.CommandArguments()
 	if channel == "" {
@@ -29,8 +26,8 @@ func (c SubscribeCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 	userID, found := helpers.GetTwitchUserIDByLogin(channel)
 	if found {
-		if errs := helpers.SendTwitchHubMessage(channel, "subscribe", generateSubscribeTopic(userID)); errs != nil {
-			logger.Log.Error().Errs("errs", errs).Msg("Failed to subscribe")
+		if err := helpers.SendEventSubMessage(channel, helix.EventSubTypeStreamOnline); err != nil {
+			logger.Log.Error().Err(err).Msg("Failed to subscribe")
 			return
 		}
 

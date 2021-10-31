@@ -51,10 +51,9 @@ func (c InfoCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 		return
 	}
 
-	stream, errs := helpers.GetTwitchStreamByLogin(channel)
-
-	if errs != nil {
-		logger.Log.Error().Errs("errs", errs).Msg("Failed to get the stream")
+	stream, err := helpers.GetTwitchStreamByLogin(channel)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("failed to get stream")
 		return
 	}
 
@@ -71,22 +70,11 @@ func (c InfoCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 
 	if stream != nil {
-		game, errs := helpers.GetTwitchGame(stream.Game)
-		if errs != nil {
-			logger.Log.Error().Errs("errs", errs).Msg("Failed to get the game")
-			return
-		}
-
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		infoCommand.Online = true
 		infoCommand.Title = stream.Title
-		infoCommand.Viewers = stream.Viewers
-
-		if game != nil {
-			infoCommand.Game = game.Name
-		} else {
-			infoCommand.Game = "не указана"
-		}
+		infoCommand.Viewers = stream.ViewerCount
+		infoCommand.Game = stream.GameName
 
 		url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
 			channel + "-1280x720.jpg?" + timestamp
