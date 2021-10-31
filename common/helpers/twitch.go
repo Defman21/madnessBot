@@ -47,6 +47,7 @@ func GetTwitchUserIDByLogin(login string) (string, bool) {
 func SendEventSubMessage(channel, eventType string) error {
 	broadcasterID, success := GetTwitchUserIDByLogin(channel)
 	if !success {
+		logger.Log.Warn().Str("channel", channel).Msg("Channel not found")
 		return nil
 	}
 
