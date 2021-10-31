@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -13,6 +14,7 @@ import (
 	"madnessBot/common/logger"
 	"madnessBot/common/metrics"
 	"madnessBot/config"
+	"madnessBot/redis"
 	"madnessBot/state/online"
 	"madnessBot/templates"
 	"net/http"
@@ -40,9 +42,11 @@ type eventSubNotification struct {
 	Event        json.RawMessage            `json:"event"`
 }
 
+const redisHelixSubsKey = "madnessBot:state:helix-subscriptions"
+
 func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		name := r.URL.Path[len(config.Config.Twitch.Webhook.Path):]
+		channel := r.URL.Path[len(config.Config.Twitch.Webhook.Path):]
 		body, _ := ioutil.ReadAll(r.Body)
 		defer r.Body.Close()
 		logger.Log.Debug().Bytes("body", body).Msg("body")
@@ -59,10 +63,23 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 		err := json.NewDecoder(bytes.NewReader(body)).Decode(&vals)
 		if err != nil {
 			logger.Log.Error().Err(err).Msg("Failed to parse twitch subscription")
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
 		}
 
 		if vals.Challenge != "" {
 			w.Write([]byte(vals.Challenge))
+			return
+		}
+
+		subKey := fmt.Sprintf("%s:%s", channel, vals.Subscription.Type)
+		subID := vals.Subscription.ID
+		_, err = redis.Get().HSet(context.Background(), redisHelixSubsKey, subKey, subID).Result()
+
+		if err != nil {
+			logger.Log.Error().Err(err).Str("channel", channel).Str("subscription-id",
+				vals.Subscription.ID).Msg("Failed to save subscription")
+			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
 
@@ -76,9 +93,9 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 		// todo: `channel.offline` event support
 		//message = templates.ExecuteTemplate("twitch_stream_ended", struct {
 		//	Login string
-		//}{Login: name})
+		//}{Login: channel})
 		//helpers.SendMessageChatID(api, config.Config.ChatID, message)
-		//online.Add(name, false)
+		//online.Add(channel, false)
 
 		if _, exists := notificationIds.Get(r.Header.Get("Twitch-Eventsub-Message-Id")); exists {
 			logger.Log.Info().Msg("Duplicate notification")
@@ -95,14 +112,14 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 			return
 		}
 		streamData := stream.Data.Streams
-		if streamData == nil {
+		if len(streamData) == 0 {
 			return
 		}
 
 		message := templates.ExecuteTemplate(
 			"twitch_stream_started",
 			notificationTemplate{
-				Login:   name,
+				Login:   channel,
 				Title:   streamData[0].Title,
 				Viewers: streamData[0].ViewerCount,
 				Game:    streamData[0].GameName,
@@ -112,15 +129,15 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 
 		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 		url := "https://static-cdn.jtvnw.net/previews-ttv/live_user_" +
-			name + "-1280x720.jpg?t=" + timestamp
+			channel + "-1280x720.jpg?t=" + timestamp
 		helpers.SendPhotoChatID(api, config.Config.ChatID, url, message)
 
 		metrics.Graphite().Send(graphite.NewMetric(
-			fmt.Sprintf("stats.stream_push.%s", name), "1",
+			fmt.Sprintf("stats.stream_push.%s", channel), "1",
 			time.Now().Unix(),
 		))
 
-		online.Add(name, true)
+		online.Add(channel, true)
 		return
 	}
 }
