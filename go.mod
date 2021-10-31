@@ -3,7 +3,6 @@ module madnessBot
 go 1.17
 
 require (
-	github.com/go-redis/redis/v7 v7.4.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.0.0-rc1.0.20200723221353-2f7211a7085f
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/marpaia/graphite-golang v0.0.0-20190519024811-caf161d2c2b1

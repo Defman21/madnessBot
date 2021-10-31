@@ -1,4 +1,6 @@
 Madness Bot
 ===========
 
-I just wrote that bot for a Telegram group. OSS ftw!
+> ⚠ Maintenance mode
+
+Some dank bot I've created when I was learning Golang.
