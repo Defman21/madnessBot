@@ -1,97 +1,79 @@
 package helpers
 
 import (
+	"github.com/nicklaw5/helix/v2"
 	"madnessBot/common/logger"
-	"madnessBot/common/oauth"
-	"madnessBot/common/types"
 	"madnessBot/config"
 )
 
 // GetTwitchUser get user by login
-func GetTwitchUser(login string) (*types.TwitchUser, []error) {
-	var response types.TwitchUserResponse
+func GetTwitchUser(login string) (*helix.User, error) {
+	resp, err := config.Config.Twitch.Client().GetUsers(&helix.UsersParams{
+		Logins: []string{login},
+	})
 
-	req := Request.Get("https://api.twitch.tv/helix/users").Query(
-		types.TwitchUserRequest{Login: login},
-	)
-
-	oauth.AddHeadersUsing("twitch", req)
-
-	_, _, errs := req.EndStruct(&response)
-
-	if len(response.Data) == 0 {
-		return nil, errs
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Failed to get twitch user")
+		return nil, err
 	}
 
-	return &response.Data[0], errs
+	return &resp.Data.Users[0], nil
 }
 
 //GetTwitchUserIDByLogin get userID by Twitch login
 func GetTwitchUserIDByLogin(login string) (string, bool) {
-	user, errs := GetTwitchUser(login)
+	user, err := GetTwitchUser(login)
 
-	if errs != nil {
-		logger.Log.Error().Errs("errs", errs).Msg("Request failed")
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Request failed")
 		return "", false
 	}
 
-	if user != nil {
-		return user.ID, true
-	}
-
-	return "", false
+	return user.ID, user.ID != ""
 }
 
-//SendTwitchHubMessage sends a message to the Twitch Hub
-func SendTwitchHubMessage(channel string, mode string, topic string) []error {
-	query := types.TwitchHub{
-		Callback:     config.Config.Twitch.Webhook.GetURL(channel),
-		Mode:         mode,
-		LeaseSeconds: 864000,
-		Topic:        topic,
+//SendEventSubMessage sends a message to the Twitch Hub
+func SendEventSubMessage(channel string, eventType string) error {
+	broadcasterID, success := GetTwitchUserIDByLogin(channel)
+	if !success {
+		return nil
 	}
 
-	req := Request.Post("https://api.twitch.tv/helix/webhooks/hub").Query(query)
-
-	logger.Log.Debug().Interface("query", query).Msg("Twitch hub message")
-
-	oauth.AddHeadersUsing("twitch", req)
-	_, _, errs := req.End()
-
-	return errs
-}
-
-func GetTwitchStreamByLogin(login string) (stream *types.TwitchStream, errs []error) {
-	var response types.TwitchStreamResponse
-
-	req := Request.Get("https://api.twitch.tv/helix/streams").Query(types.TwitchStreamRequest{
-		UserLogin: login,
+	_, err := config.Config.Twitch.Client().CreateEventSubSubscription(&helix.
+		EventSubSubscription{
+		Type:    eventType,
+		Version: "1",
+		Condition: helix.EventSubCondition{
+			BroadcasterUserID: broadcasterID,
+		},
+		Transport: helix.EventSubTransport{
+			Method:   "webhook",
+			Callback: config.Config.Twitch.Webhook.GetURL(channel),
+			Secret:   config.Config.Twitch.Webhook.Secret,
+		},
 	})
 
-	oauth.AddHeadersUsing("twitch", req)
-	_, _, errs = req.EndStruct(&response)
-
-	if len(response.Data) == 0 {
-		return nil, errs
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Failed to send EventSub request")
+		return err
 	}
 
-	return &response.Data[0], errs
+	return nil
 }
 
-func GetTwitchGame(gameID string) (game *types.TwitchGame, errs []error) {
-	var response types.TwitchGameResponse
+func GetTwitchStreamByLogin(login string) (stream *helix.Stream, err error) {
+	streams, err := config.Config.Twitch.Client().GetStreams(&helix.StreamsParams{
+		UserLogins: []string{login},
+	})
 
-	req := Request.Get("https://api.twitch.tv/helix/games").Query(
-		types.TwitchGameRequest{ID: gameID},
-	)
-
-	oauth.AddHeadersUsing("twitch", req)
-	_, _, errs = req.EndStruct(&response)
-
-	if len(response.Data) == 0 {
-		return nil, errs
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Failed to get the stream")
+		return nil, err
 	}
 
-	return &response.Data[0], errs
+	if streams.Data.Streams == nil {
+		return nil, nil
+	}
 
+	return &streams.Data.Streams[0], err
 }

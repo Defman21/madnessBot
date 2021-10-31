@@ -1,16 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hashicorp/golang-lru"
 	"github.com/marpaia/graphite-golang"
+	"github.com/nicklaw5/helix/v2"
 	"io/ioutil"
 	"madnessBot/common/helpers"
 	"madnessBot/common/logger"
 	"madnessBot/common/metrics"
-	"madnessBot/common/types"
 	"madnessBot/config"
 	"madnessBot/state/online"
 	"madnessBot/templates"
@@ -33,60 +34,79 @@ type notificationTemplate struct {
 	UserID  string
 }
 
+type eventSubNotification struct {
+	Subscription helix.EventSubSubscription `json:"subscription"`
+	Challenge    string                     `json:"challenge"`
+	Event        json.RawMessage            `json:"event"`
+}
+
 func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		name := r.URL.Path[len(config.Config.Twitch.Webhook.Path):]
-		bytes, _ := ioutil.ReadAll(r.Body)
+		body, _ := ioutil.ReadAll(r.Body)
+		defer r.Body.Close()
+		logger.Log.Debug().Bytes("body", body).Msg("body")
 
-		challenge := r.FormValue("hub.challenge")
-		if len(challenge) > 1 {
-			logger.Log.Info().Str("name", name).Str("challenge", challenge).Msg("Challenge")
-			_, _ = w.Write([]byte(challenge))
+		if !helix.VerifyEventSubNotification(config.Config.Twitch.Webhook.Secret, r.Header,
+			string(body)) {
+			logger.Log.Error().Msg("invalid twitch signature on subscription")
+			return
+		} else {
+			logger.Log.Debug().Msg("incoming twitch subscription")
+		}
+
+		var vals eventSubNotification
+		err := json.NewDecoder(bytes.NewReader(body)).Decode(&vals)
+		if err != nil {
+			logger.Log.Error().Err(err).Msg("Failed to parse twitch subscription")
+		}
+
+		if vals.Challenge != "" {
+			w.Write([]byte(vals.Challenge))
 			return
 		}
 
-		var notificationRequest types.TwitchWebHookNotificationRequest
-		_ = json.Unmarshal(bytes, &notificationRequest)
-
-		logger.Log.Info().Interface("notificationRequest", notificationRequest).Msg("Notification")
-
-		var message string
-
-		if len(notificationRequest.Data) == 0 {
-			message = templates.ExecuteTemplate("twitch_stream_ended", struct {
-				Login string
-			}{Login: name})
-			helpers.SendMessageChatID(api, config.Config.ChatID, message)
-			online.Add(name, false)
+		var onlineEvent helix.EventSubStreamOnlineEvent
+		err = json.NewDecoder(bytes.NewReader(vals.Event)).Decode(&onlineEvent)
+		if err != nil {
+			logger.Log.Error().Err(err).Msg("Failed to parse twitch `channel.online` event")
 			return
 		}
 
-		notification := notificationRequest.Data[0]
+		// todo: `channel.offline` event support
+		//message = templates.ExecuteTemplate("twitch_stream_ended", struct {
+		//	Login string
+		//}{Login: name})
+		//helpers.SendMessageChatID(api, config.Config.ChatID, message)
+		//online.Add(name, false)
 
-		if _, exists := notificationIds.Get(notification.ID); exists {
-			logger.Log.Info().Msg("Duplicate notificationRequest!")
+		if _, exists := notificationIds.Get(r.Header.Get("Twitch-Eventsub-Message-Id")); exists {
+			logger.Log.Info().Msg("Duplicate notification")
 			return
 		}
 
-		notificationIds.Add(notification.ID, true)
+		notificationIds.Add(r.Header.Get("Twitch-Eventsub-Message-Id"), true)
 
-		game, errs := helpers.GetTwitchGame(notification.Game)
-		if errs != nil {
-			logger.Log.Error().Errs("errs", errs).Msg("Failed to get the game")
+		stream, err := config.Config.Twitch.Client().GetStreams(&helix.StreamsParams{
+			UserIDs: []string{onlineEvent.BroadcasterUserID},
+		})
+		if err != nil {
+			logger.Log.Error().Err(err).Msg("failed to get stream")
+			return
+		}
+		streamData := stream.Data.Streams
+		if streamData == nil {
+			return
 		}
 
-		if game == nil {
-			game = &types.TwitchGame{Name: "не указана"}
-		}
-
-		message = templates.ExecuteTemplate(
+		message := templates.ExecuteTemplate(
 			"twitch_stream_started",
 			notificationTemplate{
 				Login:   name,
-				Title:   notification.Title,
-				Viewers: notification.Viewers,
-				Game:    game.Name,
-				UserID:  notification.UserID,
+				Title:   streamData[0].Title,
+				Viewers: streamData[0].ViewerCount,
+				Game:    streamData[0].GameName,
+				UserID:  onlineEvent.BroadcasterUserID,
 			},
 		)
 

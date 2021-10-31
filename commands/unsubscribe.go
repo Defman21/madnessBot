@@ -36,10 +36,11 @@ func (c UnsubscribeCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	if userID, ok := users[channel]; ok {
 		go func(channel string, userID string) {
-			if errs := helpers.SendTwitchHubMessage(channel, "unsubscribe", generateUnsubscribeTopic(userID)); errs != nil {
-				logger.Log.Error().Errs("errs", errs).Msg("Failed to send a request")
-				return
-			}
+			// todo: unsubscribe
+			//if errs := helpers.SendEventSubMessage(channel, "unsubscribe", generateUnsubscribeTopic(userID)); errs != nil {
+			//	logger.Log.Error().Errs("errs", errs).Msg("Failed to send a request")
+			//	return
+			//}
 
 			logger.Log.Info().Str("user", channel).Msg("Unsubscribed")
 

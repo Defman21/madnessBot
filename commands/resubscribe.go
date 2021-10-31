@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/nicklaw5/helix/v2"
 	"madnessBot/common"
 	"madnessBot/common/helpers"
 	"madnessBot/common/logger"
@@ -28,8 +29,8 @@ func (c ResubscribeCmd) Run(_ *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	for channel, userID := range users {
 		go func(channel string, userID string) {
-			if errs := helpers.SendTwitchHubMessage(channel, "subscribe", generateTopic(userID)); errs != nil {
-				logger.Log.Error().Errs("errs", errs).Msg("Failed to resubscribe")
+			if err := helpers.SendEventSubMessage(channel, helix.EventSubTypeStreamOnline); err != nil {
+				logger.Log.Error().Err(err).Msg("Failed to resubscribe")
 			} else {
 				logger.Log.Info().Str("channel", channel).Msg("Subscribed")
 			}
