@@ -8,18 +8,16 @@ import (
 	"strings"
 )
 
-const redisKey = "madnessBot:state:notify:%s"
-
 var _redis = redis.Get
 
 var log = &logger.Log
 
 func Add(userID string, userName string) {
-	_redis().RPush(context.Background(), fmt.Sprintf(redisKey, userID), userName)
+	_redis().RPush(context.Background(), fmt.Sprintf(redis.NotificationsKey, userID), userName)
 }
 
 func Remove(userID string, userName string) {
-	_redis().LRem(context.Background(), fmt.Sprintf(redisKey, userID), 1, userName)
+	_redis().LRem(context.Background(), fmt.Sprintf(redis.NotificationsKey, userID), 1, userName)
 }
 
 func GenerateString(userID string) string {
@@ -33,5 +31,5 @@ func GenerateString(userID string) string {
 }
 
 func getRedisKey(userID string) string {
-	return fmt.Sprintf(redisKey, userID)
+	return fmt.Sprintf(redis.NotificationsKey, userID)
 }

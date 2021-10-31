@@ -166,15 +166,14 @@ func main() {
 			continue
 		}
 
-		messageCount, err := redisInstance.Incr(context.Background(),
-			"madnessBot:messageCounter").Result()
+		messageCount, err := redisInstance.Incr(context.Background(), redis.MessageCounterKey).Result()
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to increase message counter")
 		}
 
 		if messageCount >= config.Config.MessageThreshold {
 			exists, err := redisInstance.Exists(context.Background(),
-				"madnessBot:messageCounter:notified").
+				redis.MessageCountThresholdKey).
 				Result()
 			if err != nil {
 				log.Error().Err(err).Msg("Redis EXISTS error")
@@ -185,7 +184,7 @@ func main() {
 					false, false,
 				)
 				err = redisInstance.Set(context.Background(),
-					"madnessBot:messageCounter:notified", 1, 0).Err()
+					redis.MessageCountThresholdKey, 1, 0).Err()
 				if err != nil {
 					log.Error().Err(err).Msg("Failed to set notified flag")
 				}

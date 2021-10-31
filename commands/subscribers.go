@@ -17,10 +17,10 @@ func (c SubscribersCmd) UseLua() bool {
 }
 
 func getSubscribersList() (users subscribeUsers) {
-	users, err := redis.Get().HGetAll(context.Background(), redisKey).Result()
+	users, err := redis.Get().HGetAll(context.Background(), redis.SubscriptionsKey).Result()
 
 	if err != nil {
-		logger.Log.Error().Err(err).Str("key", redisKey).Msg("Failed to HGETALL redis key")
+		logger.Log.Error().Err(err).Str("key", redis.SubscriptionsKey).Msg("Failed to HGETALL redis key")
 		return
 	}
 

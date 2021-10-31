@@ -7,18 +7,16 @@ import (
 	"strconv"
 )
 
-const redisKey = "madnessBot:state:online"
-
 var log = &logger.Log
 
 func Add(username string, isOnline bool) {
-	redis.Get().HSet(context.Background(), redisKey, username, isOnline)
+	redis.Get().HSet(context.Background(), redis.OnlineStreamersKey, username, isOnline)
 }
 
 func GetOnline() (result []string) {
-	kvPair, err := redis.Get().HGetAll(context.Background(), redisKey).Result()
+	kvPair, err := redis.Get().HGetAll(context.Background(), redis.OnlineStreamersKey).Result()
 	if err != nil {
-		log.Error().Err(err).Msgf("Failed to get redis key %s", redisKey)
+		log.Error().Err(err).Msgf("Failed to get redis key %s", redis.OnlineStreamersKey)
 	}
 	for username, isOnlineStr := range kvPair {
 		isOnline, _ := strconv.ParseBool(isOnlineStr)

@@ -7,15 +7,14 @@ import (
 	"time"
 )
 
-const redisKey = "madnessBot:state:subscriptions:resubscribeAt"
 const expireTime = time.Hour * 24 * 7
 
 func SaveState() {
-	_, err := redis.Get().Set(context.Background(), redisKey, true, expireTime).Result()
+	_, err := redis.Get().Set(context.Background(), redis.ResubscribeAtKey, true, expireTime).Result()
 
 	if err != nil {
 		logger.Log.Error().Err(err).
-			Str("key", redisKey).
+			Str("key", redis.ResubscribeAtKey).
 			Bool("value", true).
 			Dur("ex", expireTime).
 			Msg("Failed to SET redis key")
@@ -24,15 +23,15 @@ func SaveState() {
 }
 
 func GetState() *time.Time {
-	timestamp, err := redis.Get().TTL(context.Background(), redisKey).Result()
+	timestamp, err := redis.Get().TTL(context.Background(), redis.ResubscribeAtKey).Result()
 
 	if err != nil {
-		logger.Log.Error().Err(err).Str("key", redisKey).Msg("Failed to TTL redis key")
+		logger.Log.Error().Err(err).Str("key", redis.ResubscribeAtKey).Msg("Failed to TTL redis key")
 		return nil
 	}
 
 	if timestamp <= 0 {
-		logger.Log.Warn().Str("key", redisKey).Msg("Redis key expired")
+		logger.Log.Warn().Str("key", redis.ResubscribeAtKey).Msg("Redis key expired")
 		timestamp = -1 * time.Second
 	}
 
