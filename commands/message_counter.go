@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"madnessBot/common/helpers"
 	"madnessBot/common/logger"
@@ -19,7 +20,7 @@ type messageCounterCommandTemplate struct {
 }
 
 func (c MessageCounterCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
-	counterStr, err := redis.Get().Get("madnessBot:messageCounter").Result()
+	counterStr, err := redis.Get().Get(context.Background(), "madnessBot:messageCounter").Result()
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("Failed to get message counter")
 		return

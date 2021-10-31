@@ -1,6 +1,7 @@
 package online
 
 import (
+	"context"
 	"madnessBot/common/logger"
 	"madnessBot/redis"
 	"strconv"
@@ -11,11 +12,11 @@ const redisKey = "madnessBot:state:online"
 var log = &logger.Log
 
 func Add(username string, isOnline bool) {
-	redis.Get().HSet(redisKey, username, isOnline)
+	redis.Get().HSet(context.Background(), redisKey, username, isOnline)
 }
 
 func GetOnline() (result []string) {
-	kvPair, err := redis.Get().HGetAll(redisKey).Result()
+	kvPair, err := redis.Get().HGetAll(context.Background(), redisKey).Result()
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to get redis key %s", redisKey)
 	}

@@ -1,6 +1,7 @@
 package boosty
 
 import (
+	"context"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"madnessBot/common/logger"
 	"madnessBot/redis"
@@ -17,7 +18,7 @@ func HandleUpdate(_ *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	if len(update.Message.NewChatMembers) > 0 {
 		for _, user := range update.Message.NewChatMembers {
 			userId := strconv.FormatInt(int64(user.ID), 10)
-			_, err := _redis.HSet(redisKey, userId, true).Result()
+			_, err := _redis.HSet(context.Background(), redisKey, userId, true).Result()
 			if err != nil {
 				log.Error().Err(err).
 					Str("key", redisKey).
@@ -31,7 +32,7 @@ func HandleUpdate(_ *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	if update.Message.LeftChatMember != nil {
 		userId := strconv.FormatInt(int64(update.Message.LeftChatMember.ID), 10)
-		_, err := _redis.HDel(redisKey, userId).Result()
+		_, err := _redis.HDel(context.Background(), redisKey, userId).Result()
 		if err != nil {
 			log.Error().Err(err).
 				Str("key", redisKey).
@@ -45,7 +46,7 @@ func HandleUpdate(_ *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 func GetPayers() map[int64]bool {
 	res := map[int64]bool{}
-	usersMap, err := redis.Get().HGetAll(redisKey).Result()
+	usersMap, err := redis.Get().HGetAll(context.Background(), redisKey).Result()
 	if err != nil {
 		log.Error().Err(err).Str("key", redisKey).Msg("Failed to HGETALL redis key")
 	}

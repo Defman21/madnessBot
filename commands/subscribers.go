@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"madnessBot/common/helpers"
 	"madnessBot/common/logger"
@@ -16,7 +17,7 @@ func (c SubscribersCmd) UseLua() bool {
 }
 
 func getSubscribersList() (users subscribeUsers) {
-	users, err := redis.Get().HGetAll(redisKey).Result()
+	users, err := redis.Get().HGetAll(context.Background(), redisKey).Result()
 
 	if err != nil {
 		logger.Log.Error().Err(err).Str("key", redisKey).Msg("Failed to HGETALL redis key")
