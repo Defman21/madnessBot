@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/nicklaw5/helix/v2"
 	"madnessBot/common"
 	"madnessBot/common/helpers"
 	"madnessBot/common/logger"
@@ -37,18 +38,17 @@ func (c UnsubscribeCmd) Run(api *tgbotapi.BotAPI, update *tgbotapi.Update) {
 
 	if userID, ok := users[channel]; ok {
 		go func(channel string, userID string) {
-			// todo: unsubscribe
-			//if errs := helpers.SendEventSubMessage(channel, "unsubscribe", generateUnsubscribeTopic(userID)); errs != nil {
-			//	logger.Log.Error().Errs("errs", errs).Msg("Failed to send a request")
-			//	return
-			//}
+			if err := helpers.UnsubscribeFromEventSub(channel, helix.EventSubTypeStreamOnline); err != nil {
+				logger.Log.Error().Err(err).Msg("Failed to send a request")
+				return
+			}
 
 			logger.Log.Info().Str("user", channel).Msg("Unsubscribed")
 
-			_, err := redis.Get().HDel(context.Background(), redisKey, channel).Result()
+			_, err := redis.Get().HDel(context.Background(), redis.SubscriptionsKey, channel).Result()
 			if err != nil {
 				logger.Log.Error().Err(err).
-					Str("key", redisKey).
+					Str("key", redis.SubscriptionsKey).
 					Str("field", channel).
 					Msg("Failed to HDEL redis key")
 			}

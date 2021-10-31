@@ -66,8 +66,8 @@ func SendEventSubMessage(channel, eventType string) error {
 
 //UnsubscribeFromEventSub unsubscribes from event
 func UnsubscribeFromEventSub(channel, eventType string) error {
-	subId, err := redis.Get().HGet(context.Background(), redis.HelixSubscriptionsKey, fmt.Sprintf("%s:%s",
-		channel, eventType)).Result()
+	subKey := fmt.Sprintf("%s:%s", channel, eventType)
+	subId, err := redis.Get().HGet(context.Background(), redis.HelixSubscriptionsKey, subKey).Result()
 	if err != nil {
 		return err
 	}
@@ -76,6 +76,17 @@ func UnsubscribeFromEventSub(channel, eventType string) error {
 	if err != nil {
 		return err
 	}
+
+	n, err := redis.Get().HDel(context.Background(), redis.HelixSubscriptionsKey, subKey).Result()
+
+	if err != nil {
+		return err
+	}
+
+	if n != 1 {
+		logger.Log.Warn().Int64("affected", n).Msg("too much affected redis keys")
+	}
+
 	return nil
 }
 
