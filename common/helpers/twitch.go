@@ -20,6 +20,10 @@ func GetTwitchUser(login string) (*helix.User, error) {
 		return nil, err
 	}
 
+	if len(resp.Data.Users) == 0 {
+		return nil, nil
+	}
+
 	return &resp.Data.Users[0], nil
 }
 
@@ -32,13 +36,18 @@ func GetTwitchUserIDByLogin(login string) (string, bool) {
 		return "", false
 	}
 
-	return user.ID, user.ID != ""
+	if user == nil {
+		return "", false
+	}
+
+	return user.ID, true
 }
 
 //SendEventSubMessage sends a message to the Twitch Hub
 func SendEventSubMessage(channel, eventType string) error {
 	broadcasterID, success := GetTwitchUserIDByLogin(channel)
 	if !success {
+		logger.Log.Warn().Str("channel", channel).Msg("Channel not found")
 		return nil
 	}
 
