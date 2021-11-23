@@ -111,6 +111,7 @@ func twitchNotificationHandler(api *tgbotapi.BotAPI) http.HandlerFunc {
 		}
 		streamData := stream.Data.Streams
 		if len(streamData) == 0 {
+			logger.Log.Info().Str("user_id", onlineEvent.BroadcasterUserID).Str("channel", channel).Msg("No twitch stream data returned")
 			return
 		}
 
